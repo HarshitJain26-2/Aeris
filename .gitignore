@@ -23,10 +23,36 @@ build/
 dist/
 *.log
 
-# Data (track directories via .gitkeep, ignore data contents)
+# Large data formats and archives
+*.nc
+*.zip
+*.parquet
+*.feather
+*.h5
+*.hdf5
+
+# Data directory contents (preserve directory structures via .gitkeep)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/*/
+data/raw/**/*
+!data/raw/**/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+<<<<<<< HEAD
 
 *.tsbuildinfo
+=======
+!data/processed/*/
+data/processed/**/*
+!data/processed/**/.gitkeep
+
+# Machine Learning artifacts
+ml/models/*.pkl
+ml/models/*.joblib
+ml/models/*.onnx
+ml/models/*.pt
+ml/models/*.pth
+!ml/models/.gitkeep
+!ml/evaluation/.gitkeep
+>>>>>>> origin/main
