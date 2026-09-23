@@ -252,7 +252,14 @@ def build_unified_features(
     else:
         hourly_traffic = pd.DataFrame()
 
-    # 3. Assess Air Quality & Model-Ready Gating
+    # 3. Process and save Air Quality intermediate table
+    if aq_df is not None and not aq_df.empty:
+        aq_clean_path = out_dir / "air_quality_clean.parquet"
+        aq_df.to_parquet(aq_clean_path, index=False)
+        result_report["air_quality_clean_path"] = str(aq_clean_path)
+        logger.info(f"Saved cleaned air quality observations to {aq_clean_path} ({len(aq_df)} rows).")
+
+    # 4. Assess Air Quality & Model-Ready Gating
     has_real_aq = (
         aq_df is not None
         and not aq_df.empty

@@ -427,18 +427,24 @@ def clean_air_quality_data(
     }
 
     if raw_measurements is None:
-        # Check standard raw folder
-        default_file = Path("data/raw/air_quality/openaq_pune_measurements.json")
-        if default_file.exists():
-            with open(default_file, "r", encoding="utf-8") as f:
-                records = json.load(f)
-        else:
-            records = []
+        # Check standard raw folder for any openaq measurement json files
+        aq_dir = Path("data/raw/air_quality")
+        json_files = sorted(list(aq_dir.glob("openaq_pune_measurements*.json")))
+        records = []
+        for jf in json_files:
+            try:
+                with open(jf, "r", encoding="utf-8") as f:
+                    content = json.load(f)
+                    if isinstance(content, list):
+                        records.extend(content)
+            except Exception as e:
+                logger.warning(f"Error reading {jf}: {e}")
     elif isinstance(raw_measurements, (str, Path)):
         p = Path(raw_measurements)
         if p.exists():
             with open(p, "r", encoding="utf-8") as f:
-                records = json.load(f)
+                content = json.load(f)
+                records = content if isinstance(content, list) else []
         else:
             records = []
     elif isinstance(raw_measurements, list):

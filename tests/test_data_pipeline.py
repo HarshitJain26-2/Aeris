@@ -151,9 +151,10 @@ class TestSpatialAndGating:
         assert (tmp_path / "traffic_hourly.parquet").exists()
         assert (tmp_path / "weather_hourly.parquet").exists()
 
-    def test_openaq_missing_key_graceful_block(self):
+    def test_openaq_missing_key_graceful_block(self, monkeypatch):
         """Verifies that ingest_openaq safely detects missing key and blocks execution without raising unhandled errors."""
-        res = ingest_openaq(api_key=None)
+        monkeypatch.setenv("OPENAQ_API_KEY", "")
+        res = ingest_openaq(api_key="")
         assert res["status"] == "blocked"
         assert res["observations_count"] == 0
         assert "OPENAQ_API_KEY" in res["message"]

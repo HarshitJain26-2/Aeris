@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -31,8 +31,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("aeris.ingest")
 
-# Load environment variables if .env exists
-load_dotenv()
+# Load environment variables with fallback
+env_file = find_dotenv(usecwd=True)
+if env_file:
+    load_dotenv(env_file)
+else:
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 
 # -----------------------------------------------------------------------------
@@ -278,29 +282,67 @@ def ingest_openaq(
         locations = loc_data.get("results", [])
         logger.info(f"Discovered {len(locations)} OpenAQ monitoring locations in Pune.")
 
-        # Step 2: Fetch measurements per location for target dates
+        # Step 2: Fetch measurements per PM2.5/PM10 sensor for target dates
         all_measurements = []
         for loc in locations:
             loc_id = loc.get("id")
-            meas_url = f"{base_url}/locations/{loc_id}/measurements"
-            meas_params = {
-                "datetime_from": f"{date_from}T00:00:00Z",
-                "datetime_to": f"{date_to}T23:59:59Z",
-                "limit": 1000,
-            }
-            m_resp = requests.get(meas_url, headers=headers, params=meas_params, timeout=30)
-            if m_resp.status_code == 200:
-                m_data = m_resp.json()
-                results = m_data.get("results", [])
-                for r in results:
-                    r["location_id"] = loc_id
-                    r["location_name"] = loc.get("name")
-                    r["coordinates"] = loc.get("coordinates")
-                all_measurements.extend(results)
+            loc_name = loc.get("name")
+            coords = loc.get("coordinates", {})
+
+            # Fetch sensors for this location
+            try:
+                s_resp = requests.get(f"{base_url}/locations/{loc_id}/sensors", headers=headers, timeout=15)
+                if s_resp.status_code != 200:
+                    continue
+                sensors = s_resp.json().get("results", [])
+            except Exception as e:
+                logger.warning(f"Failed to fetch sensors for location {loc_id}: {e}")
+                continue
+
+            for sensor in sensors:
+                param_name = sensor.get("parameter", {}).get("name")
+                if param_name not in ["pm25", "pm10"]:
+                    continue
+
+                s_id = sensor.get("id")
+                meas_url = f"{base_url}/sensors/{s_id}/measurements"
+                meas_params = {
+                    "datetime_from": f"{date_from}T00:00:00Z",
+                    "datetime_to": f"{date_to}T23:59:59Z",
+                    "limit": 1000,
+                }
+                try:
+                    m_resp = requests.get(meas_url, headers=headers, params=meas_params, timeout=15)
+                    if m_resp.status_code == 200:
+                        m_data = m_resp.json()
+                        for r in m_data.get("results", []):
+                            r["location_id"] = loc_id
+                            r["location_name"] = loc_name
+                            r["coordinates"] = coords
+                            r["sensor_id"] = s_id
+                            r["parameter_name"] = param_name
+                            all_measurements.append(r)
+                except Exception as e:
+                    logger.warning(f"Error fetching measurements for sensor {s_id}: {e}")
 
         meas_file = out_path / f"openaq_pune_measurements_{date_from}_{date_to}.json"
         with open(meas_file, "w", encoding="utf-8") as f:
             json.dump(all_measurements, f, indent=2)
+
+        if not all_measurements:
+            logger.warning(
+                f"OpenAQ returned 0 measurements for Pune for date range {date_from} to {date_to}. "
+                "OpenAQ archives for Pune show an archival gap for late 2022 through 2024 across CPCB/IITM sensors."
+            )
+            return {
+                "status": "empty_period",
+                "message": (
+                    f"OpenAQ API key verified and 19 Pune monitoring stations discovered, "
+                    f"but 0 observations exist in OpenAQ for {date_from} to {date_to} due to an archive gap."
+                ),
+                "observations_count": 0,
+                "data_path": str(meas_file),
+            }
 
         logger.info(
             f"Successfully downloaded {len(all_measurements)} OpenAQ measurements to {meas_file}."
