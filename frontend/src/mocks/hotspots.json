@@ -1,0 +1,71 @@
+{
+  "type": "FeatureCollection",
+  "_comment": "DEMO FIXTURE — development mock only. Replace with GET /api/v1/hotspots when backend is live. Coordinates approximate real Pune localities.",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.9263, 18.5038] },
+      "properties": { "id": "hs-001", "name": "Hadapsar", "locality": "Hadapsar", "pm25": 118.4, "aqi": 251, "aqiBand": "Very Poor", "dominantDriver": "Traffic", "intensity": 0.92, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8474, 18.5308] },
+      "properties": { "id": "hs-002", "name": "Shivajinagar", "locality": "Shivajinagar", "pm25": 94.2, "aqi": 212, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.74, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8087, 18.4908] },
+      "properties": { "id": "hs-003", "name": "Kothrud", "locality": "Kothrud", "pm25": 76.3, "aqi": 174, "aqiBand": "Poor", "dominantDriver": "Residential/Biomass", "intensity": 0.58, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.9143, 18.5679] },
+      "properties": { "id": "hs-004", "name": "Viman Nagar", "locality": "Viman Nagar", "pm25": 88.6, "aqi": 200, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.69, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.7997, 18.6298] },
+      "properties": { "id": "hs-005", "name": "Pimpri-Chinchwad", "locality": "Pimpri-Chinchwad MIDC", "pm25": 136.8, "aqi": 298, "aqiBand": "Very Poor", "dominantDriver": "Industrial", "intensity": 0.98, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8615, 18.4522] },
+      "properties": { "id": "hs-006", "name": "Katraj", "locality": "Katraj", "pm25": 82.4, "aqi": 182, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.63, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.7979, 18.4779] },
+      "properties": { "id": "hs-007", "name": "Warje", "locality": "Warje", "pm25": 68.4, "aqi": 152, "aqiBand": "Moderate", "dominantDriver": "Residential/Biomass", "intensity": 0.48, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8948, 18.5517] },
+      "properties": { "id": "hs-008", "name": "Yerawada", "locality": "Yerawada", "pm25": 91.8, "aqi": 208, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.72, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8073, 18.5639] },
+      "properties": { "id": "hs-009", "name": "Aundh", "locality": "Aundh", "pm25": 72.1, "aqi": 162, "aqiBand": "Moderate", "dominantDriver": "Traffic", "intensity": 0.54, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.7389, 18.5912] },
+      "properties": { "id": "hs-010", "name": "Hinjewadi", "locality": "Hinjewadi IT Park", "pm25": 58.2, "aqi": 131, "aqiBand": "Moderate", "dominantDriver": "Traffic", "intensity": 0.40, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8553, 18.5017] },
+      "properties": { "id": "hs-011", "name": "Swargate", "locality": "Swargate", "pm25": 104.6, "aqi": 231, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.81, "dataSource": "DEMO_FIXTURE" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.8467, 18.5169] },
+      "properties": { "id": "hs-012", "name": "Deccan Gymkhana", "locality": "Deccan", "pm25": 86.7, "aqi": 196, "aqiBand": "Poor", "dominantDriver": "Traffic", "intensity": 0.67, "dataSource": "DEMO_FIXTURE" }
+    }
+  ],
+  "metadata": {
+    "city": "Pune",
+    "generatedAt": "2024-11-15T14:30:00+05:30",
+    "dataSource": "DEMO_FIXTURE"
+  }
+}

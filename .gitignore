@@ -28,3 +28,5 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+
+*.tsbuildinfo

@@ -1,0 +1,15 @@
+{
+  "_comment": "DEMO FIXTURE — development mock only. Replace with GET /api/v1/current when backend is live.",
+  "timestamp": "2024-11-15T14:30:00+05:30",
+  "city": "Pune",
+  "station": "Shivajinagar MPCB Station",
+  "pm25": 94.2,
+  "pm10": 158.6,
+  "aqi": 212,
+  "aqiBand": "Poor",
+  "temperatureC": 28.4,
+  "humidityPct": 62,
+  "trafficIndex": 71,
+  "windSpeedKmh": 8.2,
+  "dataSource": "DEMO_FIXTURE"
+}

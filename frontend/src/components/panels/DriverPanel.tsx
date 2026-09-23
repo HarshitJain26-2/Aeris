@@ -1,0 +1,49 @@
+import React from 'react';
+import { Card } from '../ui/Card';
+import { ModelledTag } from '../status/ModelledTag';
+import { SkeletonPanel } from '../ui/Skeleton';
+import { ErrorState } from '../ui/ErrorState';
+import { useSourceAttribution } from '../../hooks/useSourceAttribution';
+import { DriverDonut } from '../charts/DriverDonut';
+
+export const DriverPanel: React.FC = () => {
+  const { data, loading, error, refetch } = useSourceAttribution();
+
+  if (loading) return <Card className="p-4"><SkeletonPanel rows={3} /></Card>;
+  if (error || !data) return <Card className="p-0 h-full"><ErrorState onRetry={refetch} /></Card>;
+
+  return (
+    <Card className="p-4 flex flex-col gap-4">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">Model-Estimated Drivers</h2>
+          <ModelledTag label="Model Estimate" />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-6 mt-2 min-w-0">
+        <DriverDonut drivers={data.drivers} />
+        <div className="flex-1 flex flex-col gap-3 min-w-0">
+          {data.drivers.map((d, i) => (
+            <div key={d.category} className="flex justify-between items-center gap-2">
+              <div className="flex items-center gap-2 truncate">
+                <span 
+                  className="w-2 h-2 rounded-full shrink-0" 
+                  style={{ background: i === 0 ? 'var(--color-teal)' : i === 1 ? 'var(--color-modelled)' : 'var(--color-text-muted)' }} 
+                />
+                <span className="text-sm font-medium text-text-primary">{d.category}</span>
+              </div>
+              <span className="text-sm font-mono text-text-secondary">~{d.estimatedPct}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 pt-3 border-t border-border">
+        <p className="text-xs text-text-muted italic leading-relaxed" title="Model-estimated feature attribution; not direct causal source measurement.">
+          Model-estimated feature attribution; not direct causal source measurement.
+        </p>
+      </div>
+    </Card>
+  );
+};
