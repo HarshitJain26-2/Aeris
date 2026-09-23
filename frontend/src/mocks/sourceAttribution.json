@@ -1,0 +1,31 @@
+{
+  "_comment": "DEMO FIXTURE — development mock only. Values are approximate estimates for illustration. Method is NOT causal proof. Replace with GET /api/v1/drivers when source apportionment model is live.",
+  "city": "Pune",
+  "period": "2024-11-15 (24h average)",
+  "method": "DEMO_FIXTURE",
+  "disclaimer": "DEMO — Approximate model estimates for development. Not causal proof of source contribution. Values carry uncertainty. Replace with validated source apportionment model output.",
+  "dataSource": "DEMO_FIXTURE",
+  "drivers": [
+    {
+      "category": "Traffic",
+      "estimatedPct": 43,
+      "ciLower": 36,
+      "ciUpper": 51,
+      "description": "On-road vehicles including 2-wheelers, cars, buses, trucks. Peak contribution during morning and evening rush hours."
+    },
+    {
+      "category": "Industrial",
+      "estimatedPct": 34,
+      "ciLower": 27,
+      "ciUpper": 41,
+      "description": "Manufacturing facilities, construction activities, and MIDC industrial zones (Pimpri-Chinchwad, Bhosari)."
+    },
+    {
+      "category": "Residential/Biomass",
+      "estimatedPct": 23,
+      "ciLower": 17,
+      "ciUpper": 29,
+      "description": "Domestic cooking, waste burning, and seasonal crop stubble burning from surrounding agricultural areas."
+    }
+  ]
+}
