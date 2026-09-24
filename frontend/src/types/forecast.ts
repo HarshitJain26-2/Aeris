@@ -1,33 +1,29 @@
-/**
- * AERIS Urban Environmental Intelligence & Digital Twin
- * Forecast Type Definitions
- * 
- * Strict interfaces for observed PM2.5 and 24-hour temporal projections.
- * Distinguishes between OBSERVED (real measurements) and MODELED (ML predictions).
- */
+import type { CpcbBand } from './airQuality';
 
 export interface ForecastPoint {
-  /** ISO-8601 timestamp string or hourly time label (e.g. "2026-09-24T10:00:00Z" or "10:00") */
+  /** ISO 8601 timestamp */
   timestamp: string;
-  /** Actual observed PM2.5 concentration in µg/m³. Null or undefined for future forecast hours */
-  actual?: number | null;
-  /** Modeled/predicted PM2.5 concentration in µg/m³ */
-  predicted: number;
+  /** PM2.5 in µg/m³ */
+  pm25: number;
+  /** CPCB AQI */
+  aqi: number;
+  /** CPCB band */
+  aqiBand: CpcbBand;
+  /** 'observed' = actual sensor reading; 'forecast' = model prediction */
+  type: 'observed' | 'forecast';
+  /** Lower bound of 90% CI (forecast only) */
+  pm25Lower?: number;
+  /** Upper bound of 90% CI (forecast only) */
+  pm25Upper?: number;
+  /** Data provenance */
+  dataSource: 'observed' | 'model_estimate' | 'DEMO_FIXTURE';
 }
 
-export interface ZoneForecast {
-  /** Unique zone identifier (e.g. "zone-01") */
-  zoneId: string;
-  /** Human-readable zone name (e.g. "Zone 01 - Shivajinagar") */
-  zoneName: string;
-  /** Current observed PM2.5 value, or null if no observation sensor data is available */
-  currentPm25: number | null;
-  /** 24-hour temporal forecast sequence of actual vs predicted points */
-  forecast: ForecastPoint[];
-  /** Timestamp when the forecast model was run or data was last updated */
-  lastUpdated?: string;
-  /** Measurement unit (standard: "µg/m³") */
-  unit?: string;
+export interface ForecastResponse {
+  city: string;
+  generatedAt: string;
+  horizonHours: number;
+  points: ForecastPoint[];
+  modelVersion: string;
+  dataSource: 'model_estimate' | 'DEMO_FIXTURE';
 }
-
-export type ForecastStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
