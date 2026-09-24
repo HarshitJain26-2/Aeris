@@ -12,7 +12,7 @@ export const ZoneInfoPanel: React.FC<ZoneInfoPanelProps> = ({ feature }) => {
   if (!feature) {
     return (
       <Card className="p-4 flex items-center justify-center min-h-[160px]">
-        <EmptyState title="Select a zone on the map" description="Click on any hotspot to view detailed zone information." />
+        <EmptyState title="Select a zone on the map" hint="Click on any hotspot to view detailed zone information." />
       </Card>
     );
   }

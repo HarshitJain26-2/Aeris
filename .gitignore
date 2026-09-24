@@ -32,6 +32,7 @@ dist/
 *.hdf5
 
 # Data directory contents (preserve directory structures via .gitkeep)
+data/*.csv
 data/raw/*
 !data/raw/.gitkeep
 !data/raw/*/
@@ -39,11 +40,8 @@ data/raw/**/*
 !data/raw/**/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
-<<<<<<< HEAD
-
 *.tsbuildinfo
-=======
-!data/processed/*/
+!data/processed/*
 data/processed/**/*
 !data/processed/**/.gitkeep
 
@@ -55,4 +53,3 @@ ml/models/*.pt
 ml/models/*.pth
 !ml/models/.gitkeep
 !ml/evaluation/.gitkeep
->>>>>>> origin/main

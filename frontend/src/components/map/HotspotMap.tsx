@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import type { HotspotGeoJSON, HotspotFeature } from '../../types/hotspot';
 
 interface HotspotMapProps {
@@ -150,7 +150,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({ geoJson, mode, onZoneSel
         popup.remove();
       });
 
-      map.current.on('click', 'hotspots-points', (e) => {
+      map.current.on('click', 'hotspots-points', (e: maplibregl.MapLayerMouseEvent) => {
         if (e.features && e.features[0]) {
           // Cast feature correctly
           const feature = e.features[0] as unknown as HotspotFeature;
@@ -162,7 +162,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({ geoJson, mode, onZoneSel
         }
       });
       
-      map.current.on('click', (e) => {
+      map.current.on('click', (e: maplibregl.MapMouseEvent) => {
         const features = map.current?.queryRenderedFeatures(e.point, { layers: ['hotspots-points'] });
         if (!features || features.length === 0) {
           onZoneSelect(null);
