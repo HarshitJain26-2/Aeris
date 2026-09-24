@@ -1,0 +1,5 @@
+reduction_pct,baseline_prediction,scenario_prediction,delta_pm25,percent_change
+5.0,67.9864,67.9864,0.0,0.0
+10.0,67.9864,67.9864,0.0,0.0
+25.0,67.9864,67.9864,0.0,0.0
+50.0,67.9864,68.3063,0.3199,0.4705

@@ -32,6 +32,7 @@ dist/
 *.hdf5
 
 # Data directory contents (preserve directory structures via .gitkeep)
+data/*.csv
 data/raw/*
 !data/raw/.gitkeep
 !data/raw/*/
