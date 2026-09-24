@@ -84,6 +84,27 @@
   align-items: center;
   gap: 6px;
   color: #475569;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 11px;
+  transition: all 0.15s ease-in-out;
+}
+
+.map-legend-item:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.map-legend-item.selected {
+  background-color: #e0f2fe;
+  border-color: #bae6fd;
+  color: #0284c7;
+  font-weight: 600;
 }
 
 .legend-swatch {
@@ -92,4 +113,10 @@
   background: rgba(2, 132, 199, 0.25);
   border: 1.5px solid #0369a1;
   border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-swatch.selected {
+  background: #0284c7;
+  border-color: #0369a1;
 }

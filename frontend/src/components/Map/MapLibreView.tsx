@@ -34,9 +34,22 @@ const BASEMAP_STYLE: StyleSpecification = {
   ],
 };
 
-export const MapLibreView = () => {
+interface MapLibreViewProps {
+  selectedZoneId?: string | null;
+  onSelectZone?: (zoneId: string) => void;
+}
+
+export const MapLibreView: React.FC<MapLibreViewProps> = ({
+  selectedZoneId = null,
+  onSelectZone,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<MapLibreMap | null>(null);
+  const onSelectZoneRef = useRef(onSelectZone);
+
+  useEffect(() => {
+    onSelectZoneRef.current = onSelectZone;
+  }, [onSelectZone]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -107,6 +120,24 @@ export const MapLibreView = () => {
           },
         });
       }
+
+      // Enable interactive zone selection on map click
+      map.on('click', 'pune-zones-fill', (e) => {
+        if (e.features && e.features.length > 0) {
+          const zoneId = e.features[0].properties?.id;
+          if (zoneId && onSelectZoneRef.current) {
+            onSelectZoneRef.current(zoneId);
+          }
+        }
+      });
+
+      map.on('mouseenter', 'pune-zones-fill', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      map.on('mouseleave', 'pune-zones-fill', () => {
+        map.getCanvas().style.cursor = '';
+      });
     });
 
     // Handle container resizing smoothly
@@ -136,6 +167,50 @@ export const MapLibreView = () => {
     };
   }, []);
 
+  // Synchronize map zone highlights with selectedZoneId
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const updatePaint = () => {
+      if (map.getLayer('pune-zones-fill')) {
+        map.setPaintProperty('pune-zones-fill', 'fill-color', [
+          'case',
+          ['==', ['get', 'id'], selectedZoneId ?? ''],
+          '#0284c7',
+          '#38bdf8',
+        ]);
+        map.setPaintProperty('pune-zones-fill', 'fill-opacity', [
+          'case',
+          ['==', ['get', 'id'], selectedZoneId ?? ''],
+          0.45,
+          0.2,
+        ]);
+      }
+
+      if (map.getLayer('pune-zones-outline')) {
+        map.setPaintProperty('pune-zones-outline', 'line-width', [
+          'case',
+          ['==', ['get', 'id'], selectedZoneId ?? ''],
+          3.5,
+          2,
+        ]);
+        map.setPaintProperty('pune-zones-outline', 'line-color', [
+          'case',
+          ['==', ['get', 'id'], selectedZoneId ?? ''],
+          '#0284c7',
+          '#0369a1',
+        ]);
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      updatePaint();
+    } else {
+      map.once('load', updatePaint);
+    }
+  }, [selectedZoneId]);
+
   return (
     <div className="map-container-wrapper">
       <div className="map-overlay-info">
@@ -151,12 +226,20 @@ export const MapLibreView = () => {
       <div className="map-legend">
         <div className="map-legend-title">Active Test Zones</div>
         <div className="map-legend-list">
-          {PUNE_MOCK_ZONES.features.map((feature) => (
-            <div key={feature.properties.id} className="map-legend-item">
-              <span className="legend-swatch"></span>
-              <span>{feature.properties.name}</span>
-            </div>
-          ))}
+          {PUNE_MOCK_ZONES.features.map((feature) => {
+            const isSelected = selectedZoneId === feature.properties.id;
+            return (
+              <button
+                key={feature.properties.id}
+                type="button"
+                className={`map-legend-item ${isSelected ? 'selected' : ''}`}
+                onClick={() => onSelectZone?.(feature.properties.id)}
+              >
+                <span className={`legend-swatch ${isSelected ? 'selected' : ''}`}></span>
+                <span>{feature.properties.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
