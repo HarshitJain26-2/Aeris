@@ -1,6 +1,6 @@
 import React from 'react';
 import { TopBar } from './TopBar';
-import { DemoRibbon } from './DemoRibbon';
+import { Sidebar } from './Sidebar';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -19,19 +19,23 @@ export const AppShell: React.FC<AppShellProps> = ({ children, lastUpdated }) => 
         background: 'var(--color-bg-base)',
       }}
     >
-      <DemoRibbon />
-      <TopBar lastUpdated={lastUpdated} />
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {children}
-      </main>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <Sidebar />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <TopBar lastUpdated={lastUpdated} />
+          <main
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 };

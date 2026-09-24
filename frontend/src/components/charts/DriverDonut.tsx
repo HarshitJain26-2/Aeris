@@ -1,19 +1,28 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Skeleton } from '../ui/Skeleton';
 import type { DriverAttribution } from '../../types/source';
 
 interface DriverDonutProps {
   drivers: DriverAttribution[];
+  loading?: boolean;
 }
 
-export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers }) => {
+export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) => {
+  if (loading) {
+    return (
+      <div style={{ width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Skeleton width="100px" height="100px" borderRadius="50%" style={{ opacity: 0.4 }} />
+      </div>
+    );
+  }
   if (!drivers || drivers.length === 0) return null;
 
-  const COLORS = [
-    'var(--color-teal)',       // Traffic
-    'var(--color-modelled)',   // Industry
-    'var(--color-text-muted)'  // Residential
-  ];
+  const CATEGORY_COLORS: Record<string, string> = {
+    'Traffic': 'var(--chart-cat-1)',
+    'Industrial': 'var(--chart-cat-2)',
+    'Residential/Biomass': 'var(--chart-cat-3)',
+  };
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -30,7 +39,7 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers }) => {
           <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
             {data.category}
           </p>
-          <p style={{ color: 'var(--color-teal)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
+          <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
             ~{data.estimatedPct}% <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>(DEMO)</span>
           </p>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
@@ -58,7 +67,7 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers }) => {
             isAnimationActive={true}
           >
             {drivers.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category] || 'var(--color-border)'} />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />

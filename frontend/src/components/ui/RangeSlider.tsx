@@ -38,7 +38,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             fontSize: 'var(--text-sm)',
             fontFamily: 'var(--font-mono)',
             fontWeight: 600,
-            color: disabled ? 'var(--color-text-muted)' : 'var(--color-teal)',
+            color: disabled ? 'var(--color-text-muted)' : 'var(--color-accent)',
           }}
         >
           {value}%
@@ -65,7 +65,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             width: `${percent}%`,
             height: '6px',
             borderRadius: '3px',
-            background: disabled ? 'var(--color-text-muted)' : 'var(--color-teal)',
+            background: disabled ? 'var(--color-text-muted)' : 'var(--color-accent)',
           }}
         />
 
@@ -98,7 +98,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             borderRadius: '50%',
             background: disabled ? 'var(--color-text-muted)' : '#fff',
             boxShadow: 'var(--shadow-card)',
-            border: disabled ? 'none' : '2px solid var(--color-teal)',
+            border: disabled ? 'none' : '2px solid var(--color-accent)',
             pointerEvents: 'none',
           }}
         />

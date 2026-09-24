@@ -31,9 +31,9 @@ export const Button: React.FC<ButtonProps> = ({
     padding: size === 'sm' ? '6px 12px' : '9px 18px',
     fontSize: size === 'sm' ? 'var(--text-sm)' : 'var(--text-base)',
     ...(variant === 'primary' && {
-      background: 'var(--color-teal)',
+      background: 'var(--color-accent)',
       color: '#fff',
-      boxShadow: '0 0 0 0 var(--color-teal-light)',
+      boxShadow: 'none',
     }),
     ...(variant === 'ghost' && {
       background: 'transparent',
@@ -57,8 +57,8 @@ export const Button: React.FC<ButtonProps> = ({
       onMouseEnter={(e) => {
         if (!disabled && !loading) {
           if (variant === 'primary') {
-            (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-teal-light)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = 'var(--shadow-teal)';
+            (e.currentTarget as HTMLButtonElement).style.filter = 'brightness(1.1)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 12px color-mix(in srgb, var(--color-accent) 20%, transparent)';
           } else if (variant === 'ghost') {
             (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-bg-elevated)';
             (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-primary)';
@@ -68,7 +68,7 @@ export const Button: React.FC<ButtonProps> = ({
       }}
       onMouseLeave={(e) => {
         if (variant === 'primary') {
-          (e.currentTarget as HTMLButtonElement).style.background = 'var(--color-teal)';
+          (e.currentTarget as HTMLButtonElement).style.filter = 'none';
           (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
         } else if (variant === 'ghost') {
           (e.currentTarget as HTMLButtonElement).style.background = 'transparent';

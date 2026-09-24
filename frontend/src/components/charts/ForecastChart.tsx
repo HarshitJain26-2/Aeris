@@ -2,21 +2,44 @@ import React from 'react';
 import {
   ComposedChart,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceArea
+  ReferenceArea,
+  ReferenceLine
 } from 'recharts';
+import { Skeleton } from '../ui/Skeleton';
+import { ErrorState } from '../ui/ErrorState';
 import type { ForecastPoint } from '../../types/forecast';
 import { CPCB_BANDS } from '../../lib/cpcbAqi';
 
 interface ForecastChartProps {
   data: ForecastPoint[];
+  loading?: boolean;
+  error?: boolean;
+  onRetry?: () => void;
 }
 
-export const ForecastChart: React.FC<ForecastChartProps> = ({ data }) => {
+export const ForecastChart: React.FC<ForecastChartProps> = ({ data, loading, error, onRetry }) => {
+  if (error) {
+    return (
+      <div style={{ width: '100%', height: '220px' }}>
+        <ErrorState onRetry={onRetry} />
+      </div>
+    );
+  }
+  if (loading) {
+    return (
+      <div style={{ width: '100%', height: '220px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '10px 0 20px' }}>
+        {[40, 60, 45, 70, 55, 80, 65, 90, 50, 75].map((h, i) => (
+          <Skeleton key={i} width="8%" height={`${h}%`} style={{ opacity: 0.4 }} />
+        ))}
+      </div>
+    );
+  }
   if (!data || data.length === 0) return null;
 
   // Format data for Recharts
@@ -46,12 +69,14 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({ data }) => {
           padding: '8px 12px',
           borderRadius: 'var(--radius-md)',
           boxShadow: 'var(--shadow-pop)',
+          fontFamily: 'var(--font-sans)',
+          fontSize: '12px'
         }}>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>{label}</p>
-          <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-            {dataPoint.pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
+          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{label}</p>
+          <p style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>
+            {dataPoint.pm25} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
           </p>
-          <p style={{ color: dataPoint.isForecast ? 'var(--color-modelled)' : 'var(--color-observed)', fontSize: 'var(--text-xs)', marginTop: '2px' }}>
+          <p style={{ color: dataPoint.isForecast ? 'var(--color-modelled)' : 'var(--color-observed)', marginTop: '2px' }}>
             {dataPoint.isForecast ? 'Model Estimate' : 'Observed'}
           </p>
         </div>
@@ -68,9 +93,9 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({ data }) => {
           <XAxis 
             dataKey="time" 
             stroke="var(--color-text-muted)" 
-            fontSize={10} 
+            fontSize={12} 
             tickMargin={8} 
-            tick={{ fill: 'var(--color-text-muted)' }} 
+            tick={{ fill: 'var(--color-text-muted)', fontFamily: 'var(--font-sans)' }} 
             axisLine={false} 
             tickLine={false}
             interval="preserveStartEnd"
@@ -78,23 +103,31 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({ data }) => {
           />
           <YAxis 
             stroke="var(--color-text-muted)" 
-            fontSize={10} 
-            tick={{ fill: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }} 
+            fontSize={12} 
+            tick={{ fill: 'var(--color-text-muted)', fontFamily: 'var(--font-sans)' }} 
             axisLine={false} 
             tickLine={false} 
           />
           <Tooltip content={<CustomTooltip />} />
           
           {/* Background reference areas for CPCB bands (simplified for clarity) */}
-          <ReferenceArea y1={0} y2={60} fill="var(--aqi-good-bg)" opacity={0.3} />
-          <ReferenceArea y1={60} y2={90} fill="var(--aqi-moderate-bg)" opacity={0.3} />
-          <ReferenceArea y1={90} y2={250} fill="var(--aqi-poor-bg)" opacity={0.3} />
+          <ReferenceArea y1={0} y2={60} fill="var(--aqi-good-bg)" />
+          <ReferenceArea y1={60} y2={90} fill="var(--aqi-moderate-bg)" />
+          <ReferenceArea y1={90} y2={250} fill="var(--aqi-poor-bg)" />
+
+          <ReferenceLine 
+            y={60} 
+            stroke="var(--color-border)" 
+            strokeDasharray="3 3" 
+            label={{ value: 'Limit', position: 'insideTopLeft', fill: 'var(--color-text-muted)', fontSize: 12, fontFamily: 'var(--font-sans)' }} 
+          />
 
           {/* Lines */}
-          <Line
+          <Area
             type="monotone"
             dataKey="observedPm25"
             stroke="var(--color-observed)"
+            fill="var(--color-observed-bg)"
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4, fill: 'var(--color-observed)', stroke: 'var(--color-bg-base)' }}

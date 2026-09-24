@@ -9,11 +9,8 @@ import { ForecastChart } from '../charts/ForecastChart';
 export const ForecastPanel: React.FC = () => {
   const { data, loading, error, refetch } = useForecast();
 
-  if (loading) return <Card className="p-4"><SkeletonPanel rows={4} /></Card>;
-  if (error || !data) return <Card className="p-0 h-full"><ErrorState onRetry={refetch} /></Card>;
-
   return (
-    <Card className="p-4 flex flex-col gap-4">
+    <Card className="p-4 flex flex-col gap-4 shrink-0">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">PM2.5 Forecast (24h)</h2>
@@ -22,7 +19,7 @@ export const ForecastPanel: React.FC = () => {
       </div>
       
       <div className="mt-2">
-        <ForecastChart data={data.points} />
+        <ForecastChart data={data?.points || []} loading={loading} error={!!error} onRetry={refetch} />
       </div>
     </Card>
   );
