@@ -3,10 +3,11 @@ import { ObservedPanel } from '../components/panels/ObservedPanel';
 import { ForecastPanel } from '../components/panels/ForecastPanel';
 import { DriverPanel } from '../components/panels/DriverPanel';
 import { ScenarioPanel } from '../components/panels/ScenarioPanel';
+import { AqiLegendPanel } from '../components/panels/AqiLegendPanel';
 import { HotspotMap } from '../components/map/HotspotMap';
 import { LayerToggle } from '../components/map/LayerToggle';
 import { MapLegend } from '../components/map/MapLegend';
-import { ZonePopup } from '../components/map/ZonePopup';
+import { ZoneInfoPanel } from '../components/panels/ZoneInfoPanel';
 import { useHotspots } from '../hooks/useHotspots';
 import type { HotspotFeature } from '../types/hotspot';
 
@@ -29,23 +30,26 @@ export const DashboardPage: React.FC = () => {
         <DriverPanel />
       </div>
 
-      {/* CENTER COLUMN: Map Hero */}
-      <div className="relative rounded-xl overflow-hidden border border-border shadow-card bg-bg-surface h-full min-w-0">
-        <HotspotMap 
-          geoJson={hotspots} 
-          mode={mapMode} 
-          onZoneSelect={setSelectedZone} 
-        />
-        <LayerToggle mode={mapMode} onChange={setMapMode} />
-        <MapLegend />
-        {selectedZone && (
-          <ZonePopup feature={selectedZone} onClose={() => setSelectedZone(null)} />
-        )}
+      {/* CENTER COLUMN: Map Hero & Zone Panel */}
+      <div className="flex flex-col gap-4 h-full min-w-0">
+        <div className="relative flex-1 rounded-xl overflow-hidden border border-border shadow-card bg-bg-surface min-h-0">
+          <HotspotMap 
+            geoJson={hotspots} 
+            mode={mapMode} 
+            onZoneSelect={setSelectedZone} 
+          />
+          <LayerToggle mode={mapMode} onChange={setMapMode} />
+          <MapLegend />
+        </div>
+        
+        {/* New Persistent Zone Panel */}
+        <ZoneInfoPanel feature={selectedZone} />
       </div>
 
-      {/* RIGHT COLUMN: Scenarios */}
-      <div className="h-full min-w-0 overflow-y-auto">
+      {/* RIGHT COLUMN: Scenarios & Legend */}
+      <div className="flex flex-col gap-4 h-full min-w-0 overflow-y-auto pr-1" style={{ paddingBottom: '20px' }}>
         <ScenarioPanel />
+        <AqiLegendPanel />
       </div>
     </div>
   );

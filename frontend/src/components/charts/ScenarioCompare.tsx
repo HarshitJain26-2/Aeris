@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import type { ScenarioResult } from '../../types/scenario';
 
 interface ScenarioCompareProps {
@@ -14,9 +14,14 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
       type: 'baseline'
     },
     {
-      name: 'Modelled',
+      name: 'Scenario',
       pm25: result.modelled.pm25,
-      type: 'modelled'
+      type: 'scenario'
+    },
+    {
+      name: 'Change',
+      pm25: -result.deltaAbsolute,
+      type: 'change'
     }
   ];
 
@@ -42,33 +47,47 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
   };
 
   return (
-    <div style={{ width: '100%', height: '140px', minWidth: 0 }}>
+    <div style={{ width: '100%', height: '180px', minWidth: 0, flexShrink: 0 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 24, right: 10, left: -20, bottom: 24 }}>
+          <defs>
+            <pattern id="pattern-change" width="6" height="6" patternTransform="rotate(-45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="var(--aqi-good)" strokeWidth="2" opacity={0.8} />
+            </pattern>
+          </defs>
           <XAxis 
             dataKey="name" 
             stroke="var(--color-text-muted)" 
-            fontSize={10} 
+            fontSize={12} 
             tick={{ fill: 'var(--color-text-muted)' }} 
             axisLine={false} 
             tickLine={false}
           />
           <YAxis 
             stroke="var(--color-text-muted)" 
-            fontSize={10} 
-            tick={{ fill: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }} 
+            fontSize={12} 
+            tick={{ fill: 'var(--color-text-muted)', fontFamily: 'var(--font-sans)' }} 
             axisLine={false} 
             tickLine={false} 
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
           <Bar dataKey="pm25" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={true} animationDuration={600}>
+            <LabelList dataKey="pm25" position="top" fill="var(--color-text-primary)" fontSize={11} fontWeight={600} fontFamily="var(--font-mono)" />
             {data.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill="transparent"
-                stroke={entry.type === 'baseline' ? 'var(--color-observed)' : 'var(--color-modelled)'}
+                fill={
+                  entry.type === 'baseline' ? 'var(--chart-cat-3)' : 
+                  entry.type === 'scenario' ? 'var(--color-accent)' : 
+                  'url(#pattern-change)'
+                }
+                stroke={
+                  entry.type === 'baseline' ? 'var(--chart-cat-3)' : 
+                  entry.type === 'scenario' ? 'var(--color-accent)' : 
+                  'var(--aqi-good)'
+                }
                 strokeWidth={2}
-                strokeDasharray={entry.type === 'modelled' ? '4 3' : 'none'}
+                strokeDasharray="none"
               />
             ))}
           </Bar>

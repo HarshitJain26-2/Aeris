@@ -19,7 +19,7 @@ export const ScenarioPanel: React.FC = () => {
   };
 
   return (
-    <Card className="p-4 flex flex-col gap-6 h-full border-l-2 border-modelled relative min-w-0">
+    <Card className="p-4 flex flex-col gap-6 shrink-0 border-l-2 border-modelled relative min-w-0">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">Digital Twin Simulation</h2>
@@ -97,18 +97,12 @@ export const ScenarioPanel: React.FC = () => {
             
             <ScenarioCompare result={result} />
             
-            <div className="p-3 bg-bg-elevated rounded-md border border-border mt-2">
-              <p className="text-xs text-text-muted font-mono leading-relaxed opacity-80">
-                // Deterministic frontend calc
-                <br/>
-                Δ = Baseline × (1 - {trafficReduction/100} × 0.40 × 0.80)
-              </p>
-            </div>
+
           </div>
         ) : (
           <div className="h-[200px] flex items-center justify-center text-center p-6 border border-dashed border-border rounded-lg">
             <p className="text-sm text-text-secondary">
-              Adjust the slider and run a scenario to see the projected outcome.
+              Current baseline: {baseline ? baseline.pm25 : '--'} µg/m³
             </p>
           </div>
         )}

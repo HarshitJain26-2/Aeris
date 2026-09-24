@@ -1,6 +1,7 @@
 import React from 'react';
 import type { HotspotFeature } from '../../types/hotspot';
 import { AqiBadge } from '../ui/AqiBadge';
+import { EmptyState } from '../ui/EmptyState';
 import { Factory, Car, Home } from 'lucide-react';
 
 interface ZonePopupProps {
@@ -63,31 +64,47 @@ export const ZonePopup: React.FC<ZonePopupProps> = ({ feature, onClose }) => {
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>AQI</span>
-          <AqiBadge aqi={aqi} band={aqiBand} size="sm" />
-        </div>
+      {(!pm25 && !aqi) ? (
+        <EmptyState title="No data available for this station" />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>AQI</span>
+            <AqiBadge aqi={aqi} band={aqiBand} size="sm" />
+          </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>PM2.5</span>
-          <span style={{ fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
-            {pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
-          </span>
-        </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>PM2.5</span>
+            <span style={{ fontSize: 'var(--text-sm)', fontFamily: 'var(--font-metric)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              {pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400, fontFamily: 'var(--font-sans)' }}>µg/m³</span>
+            </span>
+          </div>
 
-        <div style={{ height: '1px', background: 'var(--color-border)' }} />
+          <div style={{ height: '1px', background: 'var(--color-border)' }} />
 
-        <div>
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Model-Estimated Driver
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-modelled)', fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-            {getDriverIcon(dominantDriver)}
-            {dominantDriver}
+          <div>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Model-Estimated Driver
+            </span>
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '5px', 
+              padding: '3px 8px', 
+              borderRadius: 'var(--radius-full)', 
+              border: '1px dashed var(--color-modelled)', 
+              color: 'var(--color-modelled)', 
+              fontSize: 'var(--text-xs)', 
+              fontWeight: 600, 
+              letterSpacing: '0.04em', 
+              textTransform: 'uppercase' 
+            }}>
+              {getDriverIcon(dominantDriver)}
+              {dominantDriver}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -23,7 +23,20 @@ export const AqiBadge: React.FC<AqiBadgeProps> = ({
 }) => {
   const info = getBandFromAqi(aqi);
   const resolvedBand = band ?? info.band;
-  const color = info.color;
+  const getBandToken = (bandStr: string) => {
+    switch (bandStr) {
+      case 'Good':
+      case 'Satisfactory': return 'good';
+      case 'Moderate': return 'moderate';
+      case 'Poor': return 'poor';
+      case 'Very Poor': return 'severe';
+      case 'Severe': return 'hazardous';
+      default: return 'hazardous';
+    }
+  };
+  const token = getBandToken(resolvedBand);
+  const color = `var(--aqi-${token})`;
+  const bgColor = `var(--aqi-${token}-bg)`;
   const sz = sizeClasses[size];
 
   return (
@@ -35,8 +48,8 @@ export const AqiBadge: React.FC<AqiBadgeProps> = ({
         display: 'inline-flex',
         alignItems: 'center',
         borderRadius: 'var(--radius-full)',
-        border: `1px solid ${color}40`,
-        backgroundColor: `${color}18`,
+        border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
+        backgroundColor: bgColor,
         color: color,
         fontFamily: 'var(--font-sans)',
         fontWeight: 600,

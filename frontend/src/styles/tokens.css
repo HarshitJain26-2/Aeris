@@ -1,26 +1,25 @@
 /* ═══════════════════════════════════════════════════════════════
-   AERIS Design Tokens — Warm Graphite Environmental Palette
-   
-   Deliberately avoids cold AI-dashboard neon-blue.
-   Uses warm graphite neutrals + restrained teal + amber warnings.
+   AERIS Design Tokens
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Backgrounds: warm graphite ── */
-  --color-bg-base:     #0f0f0e;
-  --color-bg-surface:  #1a1917;
-  --color-bg-elevated: #252320;
-  --color-bg-overlay:  rgba(26, 25, 23, 0.90);
+  /* ── Backgrounds ── */
+  --color-bg-base:     #F7F9FC;
+  --color-bg-surface:  #FFFFFF;
+  --color-bg-elevated: #EEF2F8;
+  --color-bg-overlay:  rgba(247, 249, 252, 0.90);
 
   /* ── Borders ── */
-  --color-border:        #2e2b27;
-  --color-border-subtle: #211f1c;
+  --color-border:        #DCE3ED;
+  --color-border-subtle: #DCE3ED;
 
-  /* ── Accent: restrained teal (primary interactive) ── */
-  --color-teal:       #0d9488;
-  --color-teal-light: #14b8a6;
-  --color-teal-dim:   #0f766e;
-  --color-teal-bg:    rgba(13, 148, 136, 0.10);
+  /* ── Accent Color (Interactive elements only) ── */
+  --color-accent: #14508C;
+  --color-accent-hover: #0F3D6B;
+  --color-teal: #14508C; /* Kept for backwards compatibility if needed */
+  
+  /* ── Focus ring ── */
+  --color-focus-ring: var(--color-accent);
 
   /* ── Status: Observed ── */
   --color-observed:    #16a34a;
@@ -35,29 +34,45 @@
   --color-critical-bg: rgba(220, 38, 38, 0.10);
 
   /* ── Text ── */
-  --color-text-primary:   #f5f5f4;
-  --color-text-secondary: #a8a29e;
-  --color-text-muted:     #57534e;
+  --color-text-primary:   #0B1E3D;
+  --color-text-secondary: #5B6B85;
+  --color-text-muted:     #8C9BAF;
 
-  /* ── Focus ring ── */
-  --color-focus-ring: #14b8a6;
+  /* ── Severity Scale (AQI) ── */
+  --aqi-good:      #2E9E5B;
+  --aqi-moderate:  #D6A400;
+  --aqi-poor:      #E07B1E;
+  --aqi-severe:    #D64545;
+  --aqi-hazardous: #8C1D1D;
 
-  /* ── India CPCB AQI 6-band palette ── */
-  --aqi-good:        #22c55e;
-  --aqi-satisfactory:#84cc16;
-  --aqi-moderate:    #eab308;
-  --aqi-poor:        #f97316;
-  --aqi-very-poor:   #ef4444;
-  --aqi-severe:      #991b1b;
+  --aqi-good-bg:      rgba(46, 158, 91, 0.15);
+  --aqi-moderate-bg:  rgba(214, 164, 0, 0.15);
+  --aqi-poor-bg:      rgba(224, 123, 30, 0.15);
+  --aqi-severe-bg:    rgba(214, 69, 69, 0.15);
+  --aqi-hazardous-bg: rgba(140, 29, 29, 0.20);
 
-  --aqi-good-bg:        rgba(34, 197, 94,  0.15);
-  --aqi-satisfactory-bg:rgba(132, 204, 22, 0.15);
-  --aqi-moderate-bg:    rgba(234, 179, 8,  0.15);
-  --aqi-poor-bg:        rgba(249, 115, 22, 0.15);
-  --aqi-very-poor-bg:   rgba(239, 68, 68,  0.15);
-  --aqi-severe-bg:      rgba(153, 27, 27,  0.20);
+  /* ── Typography ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-metric: 'Space Grotesk', monospace;
+
+  /* Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-xl: 24px;
+  --text-3xl: 40px;
+
+  /* ── Categorical Palette (Charts) ── */
+  --chart-cat-1: #C2622D; /* Traffic */
+  --chart-cat-2: #6B4FA0; /* Industrial */
+  --chart-cat-3: #1E9E8C; /* Residential/Biomass */
 
   /* ── Spacing ── */
+  --space-grid: 8px;
+  --space-panel: 16px;
+  --space-gap: 12px;
+
+  /* Legacy spacing variables */
   --space-1:  4px;
   --space-2:  8px;
   --space-3:  12px;
@@ -78,10 +93,18 @@
   /* ── Shadows ── */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-border);
   --shadow-pop:  0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--color-border);
-  --shadow-teal: 0 0 16px rgba(13, 148, 136, 0.14);
-  --shadow-amber:0 0 16px rgba(217, 119, 6,  0.14);
 
   /* ── Transitions ── */
   --transition-base: 150ms ease-out;
   --transition-slow: 300ms ease-out;
 }
+
+/* ── Typography Utility classes ── */
+.font-sans { font-family: var(--font-sans); }
+.font-metric { font-family: var(--font-metric); }
+
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-xl { font-size: var(--text-xl); }
+.text-3xl { font-size: var(--text-3xl); }
