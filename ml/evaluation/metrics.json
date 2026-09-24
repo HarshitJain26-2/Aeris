@@ -1,0 +1,28 @@
+{
+  "model": "XGBoost",
+  "target": "pm25_target_t_plus_1",
+  "validation_type": "temporal_holdout",
+  "target_source": "CAMS Global Atmospheric Composition Forecasts",
+  "target_source_type": "modeled",
+  "validation_rows": 23,
+  "training_rows": 144,
+  "feature_count": 25,
+  "mae": 5.6456,
+  "rmse": 7.9029,
+  "r2": 0.8885,
+  "persistence_mae": 7.2217,
+  "persistence_rmse": 11.1196,
+  "mae_improvement": 1.5761,
+  "rmse_improvement": 3.2167,
+  "beats_persistence_mae": true,
+  "beats_persistence_rmse": true,
+  "hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 3,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "objective": "reg:squarederror",
+    "random_state": 42
+  }
+}

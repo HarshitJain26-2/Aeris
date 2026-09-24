@@ -1,20 +1,24 @@
 """
 AERIS Data Cleaning & Validation Module (ml/src/clean.py)
 =========================================================
-Implements robust, auditable data cleaning for:
+Implements canonical, auditable data cleaning for:
 1. Heterogeneous Traffic Dataset (session-aware counter processing)
 2. Open-Meteo Weather observations
 3. OpenAQ Air Quality observations
 
-Enforces:
-- Traceability of raw-source semantics
-- Preservation of camera-level and direction-level traffic granularity
-- Explicit logging of rows audited, modified, or removed
-- Zero data fabrication
+Strict Rules Enforced:
+- ZERO FABRICATION: Missing measurement values are NEVER imputed as zeros.
+- NO CLIPPING: Out-of-range observations are flagged/excluded, not silently replaced.
+- CANONICAL LOGIC: Streaming and non-streaming traffic cleaning share identical session logic.
+- FIRST-ROW BASELINE: First row of each session establishes baseline (delta = 0).
+- TIMEZONE CONSISTENCY: All output timestamps are timezone-aware Asia/Kolkata.
 """
 
+import io
 import json
 import logging
+import re
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -28,106 +32,179 @@ logging.basicConfig(
 )
 logger = logging.getLogger("aeris.clean")
 
+COUNT_COLUMNS = ["car", "motorbike", "bus", "truck"]
+VALID_DIRECTIONS = {"UP", "DOWN", "LEFT", "RIGHT"}
+
 
 # -----------------------------------------------------------------------------
-# 1. TRAFFIC DATA CLEANING
+# 1. CANONICAL TRAFFIC SESSION CLEANING
 # -----------------------------------------------------------------------------
-def clean_traffic_data(
-    raw_df: pd.DataFrame,
+def clean_traffic_session(
+    session_df: pd.DataFrame,
+    session_file: Optional[str] = None,
+    junction: Optional[str] = None,
+    camera_id: Optional[str] = None,
+    date_str: Optional[str] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
-    Cleans raw traffic observations while preserving camera and direction independence.
+    Canonical cleaning logic for a single traffic recording session.
 
-    Empirical Rationale:
-    - CCTV recordings contain monotonically non-decreasing cumulative counts per session file.
-    - Software counters reset to 0 in continuation files (_one.csv).
-    - Rows capture frame-level detections; counts increment within identical seconds.
-    - We compute step deltas per (junction, camera_id, session_file, Direction) so that
-      interval sums yield exact vehicle counts without frame-rate assumptions or double counting.
+    Policy on Missing Measurements:
+    - Never uses fillna(0) on raw vehicle counts. Missing values are NOT zero vehicles.
+    - Rows with missing or non-numeric count measurements are excluded prior to delta
+      computation so they cannot cause artificial positive spikes.
+    - First observation in a session for each direction establishes the initial baseline
+      (delta = 0.0), so arbitrary starting counts do not fabricate vehicles.
+    - If a continuation file (_one.csv) occurs, it is treated as a separate session boundary.
 
     Args:
-        raw_df: Raw traffic DataFrame from ingest_traffic().
+        session_df: DataFrame containing raw rows from one session.
+        session_file: Optional session filename for traceability.
+        junction: Optional junction name.
+        camera_id: Optional camera identifier.
+        date_str: Optional date string (YYYY-MM-DD).
 
     Returns:
-        Tuple of (cleaned_df, audit_metrics_dict).
+        Tuple of (cleaned_session_df, audit_metrics_dict).
     """
     audit: Dict[str, Any] = {
-        "initial_rows": len(raw_df),
-        "dropped_null_rows": 0,
-        "invalid_timestamps": 0,
-        "invalid_negative_counts": 0,
+        "session_file": session_file,
+        "initial_rows": len(session_df),
+        "dropped_all_null_rows": 0,
+        "missing_timestamp_rows": 0,
+        "invalid_direction_rows": 0,
+        "missing_measurement_rows": 0,
+        "invalid_negative_count_rows": 0,
         "final_valid_rows": 0,
+        "total_vehicles_counted": 0.0,
     }
 
-    if raw_df.empty:
-        logger.warning("Empty DataFrame passed to clean_traffic_data.")
+    if session_df.empty:
         return pd.DataFrame(), audit
 
-    df = raw_df.copy()
+    df = session_df.copy()
 
-    # Drop rows where all measurement fields are null
-    req_cols = ["Time", "Direction", "car", "motorbike", "bus", "truck"]
-    before_drop = len(df)
+    # Metadata resolution
+    s_file = session_file or (df["session_file"].iloc[0] if "session_file" in df.columns else "unknown_session")
+    junc = junction or (df["junction"].iloc[0] if "junction" in df.columns else "unknown_junction")
+    cam = camera_id or (df["camera_id"].iloc[0] if "camera_id" in df.columns else "unknown_camera")
+    d_str = date_str or (df["date"].iloc[0] if "date" in df.columns else None)
+
+    # 1. Drop completely empty rows
+    req_cols = [c for c in ["Time", "Direction"] + COUNT_COLUMNS if c in df.columns]
+    before_all_null = len(df)
     df = df.dropna(subset=req_cols, how="all")
-    audit["dropped_null_rows"] = before_drop - len(df)
+    audit["dropped_all_null_rows"] = before_all_null - len(df)
 
-    # Validate and standardize Direction
-    valid_directions = {"UP", "DOWN", "LEFT", "RIGHT"}
+    if df.empty:
+        return pd.DataFrame(), audit
+
+    # 2. Validate and standardize Direction
+    if "Direction" not in df.columns:
+        logger.warning(f"Session {s_file} missing 'Direction' column.")
+        return pd.DataFrame(), audit
+
     df["Direction"] = df["Direction"].astype(str).str.strip().str.upper()
-    df = df[df["Direction"].isin(valid_directions)]
+    valid_dir_mask = df["Direction"].isin(VALID_DIRECTIONS)
+    audit["invalid_direction_rows"] = int((~valid_dir_mask).sum())
+    df = df[valid_dir_mask]
 
-    # Parse timestamps combining date and Time
-    # Expected format: '2023-01-11 09:00:34' in Asia/Kolkata
-    datetime_str = df["date"] + " " + df["Time"].astype(str)
+    if df.empty:
+        return pd.DataFrame(), audit
+
+    # 3. Detect and exclude missing vehicle count measurements (NO fillna(0))
+    for c in COUNT_COLUMNS:
+        if c not in df.columns:
+            df[c] = np.nan
+        else:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    # Detect rows where ANY count column is NaN (missing measurement)
+    missing_measurements_mask = df[COUNT_COLUMNS].isna().any(axis=1)
+    audit["missing_measurement_rows"] = int(missing_measurements_mask.sum())
+    if audit["missing_measurement_rows"] > 0:
+        logger.warning(
+            f"Session {s_file}: Excluding {audit['missing_measurement_rows']} rows with missing "
+            "vehicle count measurements to prevent artificial delta fabrication."
+        )
+        df = df[~missing_measurements_mask]
+
+    if df.empty:
+        return pd.DataFrame(), audit
+
+    # Detect rows with negative vehicle counts (physically impossible)
+    negative_counts_mask = (df[COUNT_COLUMNS] < 0).any(axis=1)
+    audit["invalid_negative_count_rows"] = int(negative_counts_mask.sum())
+    if audit["invalid_negative_count_rows"] > 0:
+        logger.warning(
+            f"Session {s_file}: Excluding {audit['invalid_negative_count_rows']} rows with negative "
+            "vehicle count values."
+        )
+        df = df[~negative_counts_mask]
+
+    if df.empty:
+        return pd.DataFrame(), audit
+
+    # 4. Parse Timestamps with explicit timezone (Asia/Kolkata)
+    if "Time" not in df.columns:
+        logger.warning(f"Session {s_file} missing 'Time' column.")
+        return pd.DataFrame(), audit
+
+    if d_str is None:
+        # Fallback date extraction from session_file name if available
+        match = re.search(r"_(\d{2})(_one)?\.csv", s_file)
+        if match:
+            d_str = f"2023-01-{int(match.group(1)):02d}"
+        else:
+            d_str = "2023-01-01"
+
+    datetime_str = d_str + " " + df["Time"].astype(str)
     parsed_timestamps = pd.to_datetime(datetime_str, format="%Y-%m-%d %H:%M:%S", errors="coerce")
-    
     invalid_time_mask = parsed_timestamps.isna()
-    audit["invalid_timestamps"] = int(invalid_time_mask.sum())
-    if audit["invalid_timestamps"] > 0:
-        logger.warning(f"Dropping {audit['invalid_timestamps']} rows with invalid timestamps.")
-        df = df[~invalid_time_mask]
-        parsed_timestamps = parsed_timestamps[~invalid_time_mask]
+    audit["missing_timestamp_rows"] = int(invalid_time_mask.sum())
+    df = df[~invalid_time_mask]
+    parsed_timestamps = parsed_timestamps[~invalid_time_mask]
 
-    # Assign timezone-aware timestamp
-    df["timestamp"] = parsed_timestamps.dt.tz_localize("Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward")
+    if df.empty:
+        return pd.DataFrame(), audit
 
-    # Validate non-negative integer counts
-    count_cols = ["car", "motorbike", "bus", "truck"]
-    for c in count_cols:
-        df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
-        neg_mask = df[c] < 0
-        if neg_mask.any():
-            audit["invalid_negative_counts"] += int(neg_mask.sum())
-            df.loc[neg_mask, c] = 0
+    df["timestamp"] = parsed_timestamps.dt.tz_localize(
+        "Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward"
+    )
 
-    # Sort deterministically by session, approach, and time
-    sort_cols = ["junction", "camera_id", "session_file", "Direction", "timestamp"]
-    df = df.sort_values(sort_cols).reset_index(drop=True)
+    # 5. Deterministic sorting for chronological delta computation preserving source row order
+    if "_source_row" not in df.columns:
+        df["_source_row"] = np.arange(len(df))
 
-    # Session-aware vehicle delta calculation
-    # Within each session file and direction, compute step-by-step non-negative changes
-    group_cols = ["junction", "camera_id", "session_file", "Direction"]
-    grouped = df.groupby(group_cols)
+    df = df.sort_values(["Direction", "timestamp", "_source_row"]).reset_index(drop=True)
 
-    for c in count_cols:
+    # 6. Session-aware delta computation with First-Row Baseline
+    # Group strictly by Direction within this single session file
+    for c in COUNT_COLUMNS:
         delta_col = f"delta_{c}"
-        # diff() yields NaN on first row of each session; fill with the first row's baseline value
-        df[delta_col] = grouped[c].diff().fillna(df[c])
-        # Clip any abnormal negative jumps (e.g. if file had internal reset)
-        df[delta_col] = df[delta_col].clip(lower=0)
+        # diff() leaves NaN at the first row of each direction in the session.
+        # First row establishes the initial counter baseline: delta = 0.0.
+        # Clipping at 0 ensures any internal sensor anomalies cannot produce negative deltas.
+        df[delta_col] = df.groupby("Direction")[c].diff().fillna(0.0).clip(lower=0.0)
 
-    # Calculate total traffic count for this row (step delta sum)
+    # Calculate total traffic delta for this observation
     df["traffic_count"] = (
         df["delta_car"] + df["delta_motorbike"] + df["delta_bus"] + df["delta_truck"]
     )
 
-    # Standardize column naming and preserve raw source values alongside deltas
-    cleaned_df = df[[
+    # Traceable standardized output schema
+    df["junction"] = junc
+    df["camera_id"] = cam
+    df["session_file"] = s_file
+    df["direction"] = df["Direction"]
+
+    cols_to_keep = [
         "timestamp",
         "junction",
         "camera_id",
-        "Direction",
+        "direction",
         "session_file",
+        "_source_row",
         "car",
         "motorbike",
         "bus",
@@ -137,8 +214,10 @@ def clean_traffic_data(
         "delta_bus",
         "delta_truck",
         "traffic_count",
-    ]].rename(columns={
-        "Direction": "direction",
+    ]
+    cols_to_keep = [c for c in cols_to_keep if c in df.columns]
+
+    cleaned_df = df[cols_to_keep].rename(columns={
         "car": "car_raw",
         "motorbike": "motorbike_raw",
         "bus": "bus_raw",
@@ -147,37 +226,109 @@ def clean_traffic_data(
 
     audit["final_valid_rows"] = len(cleaned_df)
     audit["total_vehicles_counted"] = float(cleaned_df["traffic_count"].sum())
-    audit["active_junctions"] = cleaned_df["junction"].unique().tolist()
-    audit["active_cameras"] = cleaned_df["camera_id"].unique().tolist()
 
-    logger.info(
-        f"Traffic cleaning complete: {audit['final_valid_rows']} valid rows retained from "
-        f"{audit['initial_rows']} initial rows. Total vehicles detected: {audit['total_vehicles_counted']:.0f}."
-    )
     return cleaned_df, audit
 
 
+# -----------------------------------------------------------------------------
+# 2. MULTI-SESSION TRAFFIC CLEANING (NON-STREAMING)
+# -----------------------------------------------------------------------------
+def clean_traffic_data(
+    raw_df: pd.DataFrame,
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+    """
+    Cleans raw traffic observations across multiple sessions using canonical session logic.
+    Guarantees equivalence with clean_traffic_stream on identical inputs.
+
+    Args:
+        raw_df: Raw traffic DataFrame from ingest_traffic().
+
+    Returns:
+        Tuple of (cleaned_df, combined_audit_dict).
+    """
+    overall_audit: Dict[str, Any] = {
+        "initial_rows": len(raw_df),
+        "dropped_all_null_rows": 0,
+        "missing_timestamp_rows": 0,
+        "invalid_direction_rows": 0,
+        "missing_measurement_rows": 0,
+        "invalid_negative_count_rows": 0,
+        "final_valid_rows": 0,
+        "total_vehicles_counted": 0.0,
+        "active_junctions": [],
+        "active_cameras": [],
+    }
+
+    if raw_df.empty:
+        logger.warning("Empty DataFrame passed to clean_traffic_data.")
+        return pd.DataFrame(), overall_audit
+
+    df = raw_df.copy()
+    if "session_file" not in df.columns:
+        df["session_file"] = "default_session.csv"
+    if "junction" not in df.columns:
+        df["junction"] = "default_junction"
+    if "camera_id" not in df.columns:
+        df["camera_id"] = "default_camera"
+    if "_source_row" not in df.columns:
+        df["_source_row"] = df.groupby(["junction", "camera_id", "session_file"]).cumcount()
+
+    cleaned_session_list = []
+    # Group strictly by session boundaries: junction, camera_id, session_file
+    session_groups = df.groupby(["junction", "camera_id", "session_file"], as_index=False)
+
+    for (junc, cam, s_file), group_data in session_groups:
+        s_clean, s_audit = clean_traffic_session(
+            session_df=group_data,
+            session_file=s_file,
+            junction=junc,
+            camera_id=cam,
+        )
+        if not s_clean.empty:
+            cleaned_session_list.append(s_clean)
+
+        overall_audit["dropped_all_null_rows"] += s_audit["dropped_all_null_rows"]
+        overall_audit["missing_timestamp_rows"] += s_audit["missing_timestamp_rows"]
+        overall_audit["invalid_direction_rows"] += s_audit["invalid_direction_rows"]
+        overall_audit["missing_measurement_rows"] += s_audit["missing_measurement_rows"]
+        overall_audit["invalid_negative_count_rows"] += s_audit["invalid_negative_count_rows"]
+        overall_audit["total_vehicles_counted"] += s_audit["total_vehicles_counted"]
+
+    if not cleaned_session_list:
+        return pd.DataFrame(), overall_audit
+
+    total_cleaned_df = pd.concat(cleaned_session_list, ignore_index=True)
+    overall_audit["final_valid_rows"] = len(total_cleaned_df)
+    overall_audit["active_junctions"] = sorted(total_cleaned_df["junction"].unique().tolist())
+    overall_audit["active_cameras"] = sorted(total_cleaned_df["camera_id"].unique().tolist())
+
+    logger.info(
+        f"Non-streaming traffic cleaning complete: {overall_audit['final_valid_rows']} valid rows retained from "
+        f"{overall_audit['initial_rows']} initial rows. Total vehicles detected: {overall_audit['total_vehicles_counted']:.0f}."
+    )
+    return total_cleaned_df, overall_audit
+
+
+# -----------------------------------------------------------------------------
+# 3. STREAMING TRAFFIC CLEANING
+# -----------------------------------------------------------------------------
 def clean_traffic_stream(
     traffic_zip_path: Optional[str] = None,
     max_files: Optional[int] = None,
+    aggregate_hourly: bool = True,
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
-    Memory-efficient streaming processor for the full 115-file traffic archive (~60M rows).
-    
-    Streams file-by-file to compute session-aware deltas and aggregates to hourly resolution
-    while strictly preserving camera_id and direction.
+    Memory-efficient streaming processor for the full 115-file traffic archive.
+    Uses canonical clean_traffic_session() per file to guarantee equivalent logic.
 
     Args:
         traffic_zip_path: Optional path to traffic.zip.
         max_files: Optional limit on files to process.
+        aggregate_hourly: If True, aggregates to hourly resolution. If False, returns raw cleaned rows.
 
     Returns:
-        Tuple of (hourly_traffic_df, audit_metrics).
+        Tuple of (cleaned_df, audit_metrics).
     """
-    import io
-    import re
-    import zipfile
-
     search_paths = [
         Path("data/raw/traffic/traffic.zip"),
         Path("data/raw/Heterogeneous Traffic Count Dataset, Pune (Jan 202/traffic.zip"),
@@ -194,15 +345,21 @@ def clean_traffic_stream(
     if zip_file is None:
         raise FileNotFoundError(f"Traffic archive not found in {[str(p) for p in search_paths]}")
 
-    audit: Dict[str, Any] = {
+    overall_audit: Dict[str, Any] = {
         "files_processed": 0,
         "raw_rows_processed": 0,
+        "dropped_all_null_rows": 0,
+        "missing_timestamp_rows": 0,
+        "invalid_direction_rows": 0,
+        "missing_measurement_rows": 0,
+        "invalid_negative_count_rows": 0,
+        "final_valid_rows": 0,
         "total_vehicles_counted": 0.0,
         "active_junctions": [],
         "active_cameras": [],
     }
 
-    hourly_records = []
+    accumulated_records = []
     junctions = set()
     cameras = set()
 
@@ -217,7 +374,7 @@ def clean_traffic_stream(
             parts = name.strip("/").split("/")
             if len(parts) < 4:
                 continue
-            junction, camera_id, filename = parts[1], parts[2], parts[3]
+            junc, cam, filename = parts[1], parts[2], parts[3]
             match = re.search(r"([a-z]\d)_(\d{2})(_one)?\.csv", filename)
             if not match:
                 continue
@@ -227,95 +384,84 @@ def clean_traffic_stream(
 
             try:
                 raw_bytes = z.read(name)
-                df = pd.read_csv(io.BytesIO(raw_bytes)).dropna(how="all")
-                if df.empty:
+                raw_file_df = pd.read_csv(io.BytesIO(raw_bytes))
+                raw_file_df["_source_row"] = np.arange(len(raw_file_df))
+                overall_audit["raw_rows_processed"] += len(raw_file_df)
+
+                # Invoke canonical session cleaning
+                s_clean, s_audit = clean_traffic_session(
+                    session_df=raw_file_df,
+                    session_file=filename,
+                    junction=junc,
+                    camera_id=cam,
+                    date_str=date_str,
+                )
+
+                overall_audit["dropped_all_null_rows"] += s_audit["dropped_all_null_rows"]
+                overall_audit["missing_timestamp_rows"] += s_audit["missing_timestamp_rows"]
+                overall_audit["invalid_direction_rows"] += s_audit["invalid_direction_rows"]
+                overall_audit["missing_measurement_rows"] += s_audit["missing_measurement_rows"]
+                overall_audit["invalid_negative_count_rows"] += s_audit["invalid_negative_count_rows"]
+                overall_audit["total_vehicles_counted"] += s_audit["total_vehicles_counted"]
+                overall_audit["files_processed"] += 1
+
+                if s_clean.empty:
                     continue
 
-                audit["raw_rows_processed"] += len(df)
-                junctions.add(junction)
-                cameras.add(camera_id)
+                junctions.add(junc)
+                cameras.add(cam)
 
-                # Filter valid directions
-                valid_dirs = {"UP", "DOWN", "LEFT", "RIGHT"}
-                df["Direction"] = df["Direction"].astype(str).str.strip().str.upper()
-                df = df[df["Direction"].isin(valid_dirs)]
-
-                # Parse time
-                time_series = pd.to_datetime(
-                    date_str + " " + df["Time"].astype(str),
-                    format="%Y-%m-%d %H:%M:%S",
-                    errors="coerce",
-                )
-                df["timestamp"] = time_series
-                df = df.dropna(subset=["timestamp"])
-
-                for c in ["car", "motorbike", "bus", "truck"]:
-                    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).clip(lower=0)
-
-                # Session-aware deltas per direction within this file
-                df = df.sort_values(["Direction", "timestamp"])
-                for c in ["car", "motorbike", "bus", "truck"]:
-                    df[f"delta_{c}"] = df.groupby("Direction")[c].diff().fillna(df[c]).clip(lower=0)
-
-                df["traffic_count"] = (
-                    df["delta_car"] + df["delta_motorbike"] + df["delta_bus"] + df["delta_truck"]
-                )
-                audit["total_vehicles_counted"] += float(df["traffic_count"].sum())
-
-                # Aggregate by hour for this camera and direction
-                df["timestamp"] = df["timestamp"].dt.floor("1h")
-                df["junction"] = junction
-                df["camera_id"] = camera_id
-
-                h_agg = df.groupby(
-                    ["timestamp", "junction", "camera_id", "Direction"],
-                    as_index=False,
-                )[["delta_car", "delta_motorbike", "delta_bus", "delta_truck", "traffic_count"]].sum()
-
-                h_agg = h_agg.rename(columns={"Direction": "direction"})
-                hourly_records.append(h_agg)
-                audit["files_processed"] += 1
+                if aggregate_hourly:
+                    # Hourly aggregation step
+                    s_clean["timestamp"] = s_clean["timestamp"].dt.floor("1h")
+                    h_agg = s_clean.groupby(
+                        ["timestamp", "junction", "camera_id", "direction"],
+                        as_index=False,
+                    )[["delta_car", "delta_motorbike", "delta_bus", "delta_truck", "traffic_count"]].sum()
+                    accumulated_records.append(h_agg)
+                else:
+                    accumulated_records.append(s_clean)
 
             except Exception as e:
                 logger.error(f"Error processing {filename}: {e}")
 
-    if not hourly_records:
-        return pd.DataFrame(), audit
+    if not accumulated_records:
+        return pd.DataFrame(), overall_audit
 
-    hourly_df = pd.concat(hourly_records, ignore_index=True)
-    # Further group by same hour, junction, camera, direction across continuation files
-    hourly_df = hourly_df.groupby(
-        ["timestamp", "junction", "camera_id", "direction"],
-        as_index=False,
-    )[["delta_car", "delta_motorbike", "delta_bus", "delta_truck", "traffic_count"]].sum()
+    res_df = pd.concat(accumulated_records, ignore_index=True)
 
-    # Localize to Asia/Kolkata
-    hourly_df["timestamp"] = hourly_df["timestamp"].dt.tz_localize(
-        "Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward"
-    )
+    if aggregate_hourly:
+        # Consolidate continuation files covering same hour
+        res_df = res_df.groupby(
+            ["timestamp", "junction", "camera_id", "direction"],
+            as_index=False,
+        )[["delta_car", "delta_motorbike", "delta_bus", "delta_truck", "traffic_count"]].sum()
 
-    audit["active_junctions"] = sorted(list(junctions))
-    audit["active_cameras"] = sorted(list(cameras))
-    audit["hourly_rows"] = len(hourly_df)
+    overall_audit["final_valid_rows"] = len(res_df)
+    overall_audit["active_junctions"] = sorted(list(junctions))
+    overall_audit["active_cameras"] = sorted(list(cameras))
 
     logger.info(
-        f"Streaming traffic cleaning complete: {audit['files_processed']} files processed "
-        f"({audit['raw_rows_processed']} raw rows). Total vehicles detected: {audit['total_vehicles_counted']:.0f}. "
-        f"Produced {audit['hourly_rows']} hourly camera/direction records."
+        f"Streaming traffic cleaning complete: {overall_audit['files_processed']} files processed. "
+        f"Produced {overall_audit['final_valid_rows']} {'hourly' if aggregate_hourly else 'row'} records. "
+        f"Total vehicles: {overall_audit['total_vehicles_counted']:.0f}."
     )
-    return hourly_df, audit
+    return res_df, overall_audit
 
 
 # -----------------------------------------------------------------------------
-# 2. OPEN-METEO WEATHER CLEANING
+# 4. OPEN-METEO WEATHER CLEANING
 # -----------------------------------------------------------------------------
 def clean_weather_data(
     raw_weather: Union[Dict[str, Any], str, Path],
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
-    Cleans raw Open-Meteo weather JSON response and verifies physical value ranges.
-
-    Target schema: timestamp, temperature, humidity, wind_speed, rainfall.
+    Cleans raw Open-Meteo weather JSON response.
+    
+    Zero-Fabrication Policy:
+    - Never clips out-of-range observations to make them appear valid.
+    - Physical bounds violations are flagged, audited, and excluded from model-ready data.
+    - All timestamps are preserved with timezone Asia/Kolkata.
 
     Args:
         raw_weather: Open-Meteo dictionary or path to raw JSON file.
@@ -325,7 +471,11 @@ def clean_weather_data(
     """
     audit: Dict[str, Any] = {
         "raw_hours_received": 0,
-        "range_violations_corrected": 0,
+        "invalid_temperature_count": 0,
+        "invalid_humidity_count": 0,
+        "invalid_wind_speed_count": 0,
+        "invalid_rainfall_count": 0,
+        "total_invalid_hours_excluded": 0,
         "final_valid_hours": 0,
     }
 
@@ -351,41 +501,50 @@ def clean_weather_data(
     })
 
     audit["raw_hours_received"] = len(df)
+    if df.empty:
+        return pd.DataFrame(), audit
 
-    # Parse timestamps with explicit timezone
-    # Open-Meteo returns 'YYYY-MM-DDTHH:MM' in requested timezone (Asia/Kolkata)
-    parsed_time = pd.to_datetime(df["time_str"])
-    df["timestamp"] = parsed_time.dt.tz_localize("Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward")
+    # 1. Parse timestamps with explicit timezone (Asia/Kolkata)
+    parsed_time = pd.to_datetime(df["time_str"], errors="coerce")
+    invalid_time_mask = parsed_time.isna()
+    df = df[~invalid_time_mask].copy()
+    parsed_time = parsed_time[~invalid_time_mask]
+    df["timestamp"] = parsed_time.dt.tz_localize(
+        "Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward"
+    )
     df = df.drop(columns=["time_str"])
 
-    # Physical Range Validation
+    # 2. Strict Physical Range Validation (NO CLIPPING)
+    # Convert all metrics to numeric
+    for col in ["temperature", "humidity", "wind_speed", "rainfall"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # Physical bounds checks:
     # Temperature: [-10°C, 60°C]
-    temp_invalid = (df["temperature"] < -10) | (df["temperature"] > 60)
-    if temp_invalid.any():
-        audit["range_violations_corrected"] += int(temp_invalid.sum())
-        logger.warning(f"Clipping {temp_invalid.sum()} temperature outliers outside [-10, 60].")
-        df["temperature"] = df["temperature"].clip(lower=-10, upper=60)
-
+    invalid_temp = (df["temperature"] < -10) | (df["temperature"] > 60) | df["temperature"].isna()
     # Humidity: [0%, 100%]
-    hum_invalid = (df["humidity"] < 0) | (df["humidity"] > 100)
-    if hum_invalid.any():
-        audit["range_violations_corrected"] += int(hum_invalid.sum())
-        logger.warning(f"Clipping {hum_invalid.sum()} humidity outliers outside [0, 100].")
-        df["humidity"] = df["humidity"].clip(lower=0, upper=100)
+    invalid_hum = (df["humidity"] < 0) | (df["humidity"] > 100) | df["humidity"].isna()
+    # Wind speed: [0 km/h, 200 km/h]
+    invalid_wind = (df["wind_speed"] < 0) | (df["wind_speed"] > 200) | df["wind_speed"].isna()
+    # Rainfall: [0 mm, 500 mm]
+    invalid_rain = (df["rainfall"] < 0) | (df["rainfall"] > 500) | df["rainfall"].isna()
 
-    # Wind speed: >= 0 km/h, <= 200 km/h
-    wind_invalid = (df["wind_speed"] < 0) | (df["wind_speed"] > 200)
-    if wind_invalid.any():
-        audit["range_violations_corrected"] += int(wind_invalid.sum())
-        logger.warning(f"Clipping {wind_invalid.sum()} wind speed outliers outside [0, 200].")
-        df["wind_speed"] = df["wind_speed"].clip(lower=0, upper=200)
+    audit["invalid_temperature_count"] = int(invalid_temp.sum())
+    audit["invalid_humidity_count"] = int(invalid_hum.sum())
+    audit["invalid_wind_speed_count"] = int(invalid_wind.sum())
+    audit["invalid_rainfall_count"] = int(invalid_rain.sum())
 
-    # Rainfall: >= 0 mm, <= 500 mm
-    rain_invalid = (df["rainfall"] < 0) | (df["rainfall"] > 500)
-    if rain_invalid.any():
-        audit["range_violations_corrected"] += int(rain_invalid.sum())
-        logger.warning(f"Clipping {rain_invalid.sum()} rainfall outliers outside [0, 500].")
-        df["rainfall"] = df["rainfall"].clip(lower=0, upper=500)
+    invalid_any_mask = invalid_temp | invalid_hum | invalid_wind | invalid_rain
+    audit["total_invalid_hours_excluded"] = int(invalid_any_mask.sum())
+
+    if audit["total_invalid_hours_excluded"] > 0:
+        logger.warning(
+            f"Excluding {audit['total_invalid_hours_excluded']} weather records failing physical bounds "
+            f"(temp: {audit['invalid_temperature_count']}, hum: {audit['invalid_humidity_count']}, "
+            f"wind: {audit['invalid_wind_speed_count']}, rain: {audit['invalid_rainfall_count']}). "
+            "Replacement values are strictly not fabricated."
+        )
+        df = df[~invalid_any_mask].copy()
 
     # Deduplicate and sort by timestamp
     df = df.drop_duplicates(subset=["timestamp"]).sort_values("timestamp").reset_index(drop=True)
@@ -402,7 +561,7 @@ def clean_weather_data(
 
 
 # -----------------------------------------------------------------------------
-# 3. OPENAQ AIR QUALITY CLEANING
+# 5. OPENAQ AIR QUALITY CLEANING
 # -----------------------------------------------------------------------------
 def clean_air_quality_data(
     raw_measurements: Optional[Union[List[Dict[str, Any]], str, Path]] = None,
@@ -410,8 +569,8 @@ def clean_air_quality_data(
     """
     Validates and cleans real OpenAQ air quality measurements if available.
     
-    If data is absent (e.g. key missing), returns an empty DataFrame with target schema
-    and clearly documents that zero real observations are present.
+    Timestamps are parsed as UTC and converted to Asia/Kolkata.
+    Zero imputation or synthetic replacement is performed.
 
     Args:
         raw_measurements: Optional list of raw measurement dicts or path to JSON file.
@@ -427,9 +586,8 @@ def clean_air_quality_data(
     }
 
     if raw_measurements is None:
-        # Check standard raw folder for any openaq measurement json files
         aq_dir = Path("data/raw/air_quality")
-        json_files = sorted(list(aq_dir.glob("openaq_pune_measurements*.json")))
+        json_files = sorted(list(aq_dir.glob("*pune_measurements*.json")))
         records = []
         for jf in json_files:
             try:
@@ -455,10 +613,6 @@ def clean_air_quality_data(
     audit["raw_records_received"] = len(records)
 
     if not records:
-        logger.info(
-            "Air quality observations are absent. No real PM2.5/PM10 data available. "
-            "Downstream model-ready dataset creation must remain gated."
-        )
         empty_df = pd.DataFrame(columns=[
             "timestamp",
             "station_id",
@@ -470,34 +624,76 @@ def clean_air_quality_data(
         ])
         return empty_df, audit
 
-    # Process genuine records
     rows = []
     for r in records:
         val = r.get("value")
-        param = r.get("parameter", {}).get("name") if isinstance(r.get("parameter"), dict) else r.get("parameter")
-        dt_str = r.get("period", {}).get("datetimeFrom", {}).get("utc") or r.get("datetime")
-        coords = r.get("coordinates", {})
+        raw_param = (
+            r.get("parameter", {}).get("name")
+            if isinstance(r.get("parameter"), dict)
+            else (r.get("parameter") or r.get("parameter_name"))
+        )
+        if not raw_param:
+            continue
+        param_norm = str(raw_param).lower().replace(".", "").replace("-", "").strip()
+        if param_norm not in ["pm25", "pm10"]:
+            continue
 
-        if val is None or val < 0 or val > 1500:  # Physical plausibility bound
+        dt_str = (
+            r.get("collected_at")
+            or (r.get("period", {}).get("datetimeFrom", {}).get("utc") if isinstance(r.get("period"), dict) else None)
+            or r.get("datetime_utc")
+            or r.get("datetime")
+        )
+        if not dt_str:
+            continue
+
+        coords = r.get("coordinates") or {}
+        lat = r.get("station_lat") or (coords.get("latitude") if isinstance(coords, dict) else None)
+        lon = r.get("station_lon") or (coords.get("longitude") if isinstance(coords, dict) else None)
+        station_id = r.get("station_id") or r.get("location_id")
+        station_name = r.get("station_name") or r.get("location_name")
+
+        # Guard against misattributed stations in upstream registries
+        if "moradabad" in str(station_name).lower() or "uppcb" in str(station_name).lower():
+            continue
+
+        if val is None:
+            continue
+        try:
+            val_float = float(val)
+        except (ValueError, TypeError):
+            continue
+
+        # Physical plausibility bound: [0, 1500] ug/m3
+        if val_float < 0 or val_float > 1500:
             continue
 
         rows.append({
-            "datetime_utc": dt_str,
-            "station_id": r.get("location_id"),
-            "station_name": r.get("location_name"),
-            "station_lat": coords.get("latitude"),
-            "station_lon": coords.get("longitude"),
-            "parameter": param,
-            "value": float(val),
+            "datetime_raw": dt_str,
+            "station_id": station_id,
+            "station_name": station_name,
+            "station_lat": lat,
+            "station_lon": lon,
+            "parameter": param_norm,
+            "value": val_float,
         })
 
     df = pd.DataFrame(rows)
     if df.empty:
         return pd.DataFrame(), audit
 
-    # Parse timestamps and localize to Asia/Kolkata
-    df["timestamp"] = pd.to_datetime(df["datetime_utc"]).dt.tz_convert("Asia/Kolkata")
-    
+    # Parse timestamps and enforce Asia/Kolkata
+    parsed_dt = pd.to_datetime(df["datetime_raw"], errors="coerce")
+    valid_dt_mask = parsed_dt.notna()
+    df = df[valid_dt_mask].copy()
+    parsed_dt = parsed_dt[valid_dt_mask]
+
+    # Convert or localize to Asia/Kolkata
+    if parsed_dt.dt.tz is None:
+        df["timestamp"] = parsed_dt.dt.tz_localize("Asia/Kolkata", ambiguous="NaT", nonexistent="shift_forward")
+    else:
+        df["timestamp"] = parsed_dt.dt.tz_convert("Asia/Kolkata")
+
     # Pivot parameters into pm25 and pm10 columns
     pivoted = df.pivot_table(
         index=["timestamp", "station_id", "station_name", "station_lat", "station_lon"],
@@ -514,7 +710,7 @@ def clean_air_quality_data(
 
     audit["valid_pm25_records"] = int(pivoted["pm25"].notna().sum())
     audit["valid_pm10_records"] = int(pivoted["pm10"].notna().sum())
-    audit["data_status"] = "present"
+    audit["data_status"] = "present" if audit["valid_pm25_records"] > 0 else "absent"
 
     logger.info(
         f"Air quality cleaning complete: {len(pivoted)} records. "

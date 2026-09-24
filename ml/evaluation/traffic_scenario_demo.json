@@ -1,0 +1,45 @@
+{
+  "timestamp": "2023-01-18 08:00:00+05:30",
+  "reduction_pct": 25.0,
+  "baseline_prediction": 67.9864,
+  "scenario_prediction": 67.9864,
+  "delta_pm25": 0.0,
+  "percent_change": 0.0,
+  "model_source": "XGBoost (ml/models/xgb_pm25_forecaster.json)",
+  "target_source": "CAMS Global Atmospheric Composition Forecasts",
+  "scenario_type": "modeled traffic-reduction scenario",
+  "counterfactual_label": "XGBoost counterfactual scenario",
+  "disclaimer": "The scenario engine perturbs current-hour traffic predictors only. Historical traffic context remains fixed. Because the forecasting model is predictive rather than causal, the learned counterfactual response may be non-monotonic and should not be interpreted as a guaranteed physical effect.",
+  "modified_features": {
+    "traffic_alankar": {
+      "baseline": 7.0,
+      "scenario": 5.25,
+      "factor": 0.75
+    },
+    "traffic_jehangir": {
+      "baseline": 20.0,
+      "scenario": 15.0,
+      "factor": 0.75
+    },
+    "traffic_rto": {
+      "baseline": 13.0,
+      "scenario": 9.75,
+      "factor": 0.75
+    },
+    "traffic_total": {
+      "baseline": 40.0,
+      "scenario": 30.0,
+      "factor": 0.75
+    },
+    "traffic_x_wind": {
+      "baseline": 144.0,
+      "scenario": 108.0,
+      "factor": 0.75
+    },
+    "traffic_x_humidity": {
+      "baseline": 2600.0,
+      "scenario": 1950.0,
+      "factor": 0.75
+    }
+  }
+}

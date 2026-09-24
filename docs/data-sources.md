@@ -115,12 +115,78 @@ OpenAQ indexes several active Continuous Ambient Air Quality Monitoring Stations
 - Stations exceeding the 5 km threshold (e.g., Bhosari, Katraj) remain distinct and are **not** forced into the traffic zones.
 
 ### Current Access Status & Gating
-- Because `OPENAQ_API_KEY` is not currently set in the local environment, the ingestion client gracefully reports that execution is blocked pending credentials.
-- **Strict Quality Rule**: No synthetic or fabricated air quality numbers are created. Generating the model-ready dataset (`aeris_features.parquet`) is gated until real OpenAQ observations are successfully ingested.
+- `OPENAQ_API_KEY` is supported for live queries. However, OpenAQ v3 records for Pune exhibit an archival gap for the 2023 calendar period across CPCB sensors.
 
 ---
 
-## 4. EDGAR Industrial NetCDF Emissions (v8.1 FT2022)
+## 4. Ambient Air Quality Dataset (XKDR India Air Quality Database)
+
+### Overview & Attribution
+- **Dataset Name**: India Air Quality Database (CPCB CAAQM Network)
+- **Source**: Published by **XKDR Forum** ([https://airquality.xkdr.org](https://airquality.xkdr.org))
+- **Coverage**: Complete hourly time series from all 553+ CPCB monitoring stations across India from 2009 onwards, including January 2023 for Pune.
+- **Authentication**: Bearer token via `Authorization: Bearer aqi_...` header.
+- **Environment Variable**: `XKDR_API_KEY` (configured in `.env`, strictly uncommitted).
+
+### Target Variables & Temporal Alignment
+- `PM2.5`: Fine particulate matter ($\mu\text{g/m}^3$)
+- `PM10`: Coarse particulate matter ($\mu\text{g/m}^3$)
+- **Timestamp Format**: Hourly readings in Indian Standard Time (IST, UTC+05:30), matching traffic and weather time series natively without timezone drift.
+
+### Jan 11–18, 2023 Data Gap
+All 9 genuine Pune CPCB CAAQM stations returned **zero measurements** from XKDR for the Jan 11–18, 2023 window — consistent with a coordinated instrument maintenance gap confirmed across CPCB/OpenAQ/XKDR and the CPCB bulk CSV dataset (2010–2023).
+
+---
+
+## 5. CAMS Global Atmospheric Composition Forecasts (Round 1 PM2.5 Target)
+
+### Overview & Attribution
+- **Product Name**: CAMS Global Atmospheric Composition Forecasts
+- **Source**: Copernicus Atmosphere Monitoring Service (CAMS), via Open-Meteo Air Quality API
+- **Official CAMS URL**: https://ads.atmosphere.copernicus.eu/datasets/cams-global-atmospheric-composition-forecasts
+- **Open-Meteo API URL**: https://air-quality-api.open-meteo.com/v1/air-quality
+- **Authentication**: None required (public endpoint)
+- **API Parameter**: `domains=cams_global`
+
+### Critical Scientific Distinction
+
+> **This product is MODELED atmospheric PM2.5 — NOT direct Pune ground-station observations.**
+
+- Permitted labels: "CAMS Global modeled PM2.5", "CAMS Global atmospheric-composition model PM2.5"
+- Forbidden labels: "CPCB observed PM2.5", "ground truth", "observed PM2.5", "CAMS Global Reanalysis / EAC4"
+
+The **CAMS Global Reanalysis EAC4** is a separate ECMWF product. This source delivers **atmospheric composition forecast** fields — not EAC4.
+
+### Why This Source Is Used for Round 1
+CPCB/XKDR/OpenAQ and the CPCB bulk CSV dataset (2010–2023) confirm **no ground-station PM2.5** for Pune during Jan 11–18, 2023. CAMS Global provides a complete, gapless 192-hour modeled PM2.5 series for this exact window.
+
+### Verified Data for Pune (Jan 11–18, 2023)
+- Grid point snapped to: 18.5° N, 73.9° E (~5–6 km from city center)
+- Spatial resolution: ~0.4° (~40 km grid)
+- Records: **192 / 192 non-null**, 0 duplicates, 0 nulls
+- Timestamps: 2023-01-11T00:00 to 2023-01-18T23:00 IST
+- PM2.5 range: 16.6 – 115.7 µg/m³, mean: 55.08 µg/m³
+
+### Artifacts
+- Raw JSON: `data/raw/air_quality/cams_global_pune_pm25_2023-01-11_2023-01-18.json`
+- Cleaned Parquet: `data/processed/cams_global_pune_pm25_hourly.parquet`
+- Parquet columns: `timestamp` (Asia/Kolkata), `pm25`, `latitude`, `longitude`, `source`, `source_type`
+- `source` = "CAMS Global Atmospheric Composition Forecasts", `source_type` = "modeled"
+
+### Validation Wording Policy
+- Use: **"temporal holdout against the CAMS modeled target"**
+- Never: "ground truth validation" or "CPCB observed performance"
+
+### Spatial Design Constraint
+CAMS provides one modeled urban-airshed PM2.5 value per hourly grid point. It is therefore used as the city-level modeled target. Three Pune traffic zones are retained as spatial predictors/context rather than treated as independent PM2.5 observations.
+
+A dedicated city-level forecasting dataset (`aeris_ml_city.parquet`, with `_train.parquet` and `_val.parquet`) preserves exactly one row per hour, while the multi-zone dataset (`aeris_features.parquet`) is retained for digital-twin visualization and scenario simulations.
+
+---
+
+
+
+## 6. EDGAR Industrial NetCDF Emissions (v8.1 FT2022)
 
 ### Overview & Attribution
 - **Dataset Name**: Emissions Database for Global Atmospheric Research (EDGAR) v8.1 Air Pollutants
