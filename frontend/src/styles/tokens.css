@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════
+   AERIS Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Backgrounds ── */
+  --color-bg-base:     #F7F9FC;
+  --color-bg-surface:  #FFFFFF;
+  --color-bg-elevated: #EEF2F8;
+  --color-bg-overlay:  rgba(247, 249, 252, 0.90);
+
+  /* ── Borders ── */
+  --color-border:        #DCE3ED;
+  --color-border-subtle: #DCE3ED;
+
+  /* ── Accent Color (Interactive elements only) ── */
+  --color-accent: #14508C;
+  --color-accent-hover: #0F3D6B;
+  --color-teal: #14508C; /* Kept for backwards compatibility if needed */
+  
+  /* ── Focus ring ── */
+  --color-focus-ring: var(--color-accent);
+
+  /* ── Status: Observed ── */
+  --color-observed:    #16a34a;
+  --color-observed-bg: rgba(22, 163, 74, 0.10);
+
+  /* ── Status: Modelled / warning ── */
+  --color-modelled:    #d97706;
+  --color-modelled-bg: rgba(217, 119, 6, 0.10);
+
+  /* ── Critical ── */
+  --color-critical:    #dc2626;
+  --color-critical-bg: rgba(220, 38, 38, 0.10);
+
+  /* ── Text ── */
+  --color-text-primary:   #0B1E3D;
+  --color-text-secondary: #5B6B85;
+  --color-text-muted:     #8C9BAF;
+
+  /* ── Severity Scale (AQI) ── */
+  --aqi-good:      #2E9E5B;
+  --aqi-moderate:  #D6A400;
+  --aqi-poor:      #E07B1E;
+  --aqi-severe:    #D64545;
+  --aqi-hazardous: #8C1D1D;
+
+  --aqi-good-bg:      rgba(46, 158, 91, 0.15);
+  --aqi-moderate-bg:  rgba(214, 164, 0, 0.15);
+  --aqi-poor-bg:      rgba(224, 123, 30, 0.15);
+  --aqi-severe-bg:    rgba(214, 69, 69, 0.15);
+  --aqi-hazardous-bg: rgba(140, 29, 29, 0.20);
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-metric: 'Space Grotesk', monospace;
+
+  /* Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-xl: 24px;
+  --text-3xl: 40px;
+
+  /* ── Categorical Palette (Charts) ── */
+  --chart-cat-1: #C2622D; /* Traffic */
+  --chart-cat-2: #6B4FA0; /* Industrial */
+  --chart-cat-3: #1E9E8C; /* Residential/Biomass */
+
+  /* ── Spacing ── */
+  --space-grid: 8px;
+  --space-panel: 16px;
+  --space-gap: 12px;
+
+  /* Legacy spacing variables */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Border radius ── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-border);
+  --shadow-pop:  0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--color-border);
+
+  /* ── Transitions ── */
+  --transition-base: 150ms ease-out;
+  --transition-slow: 300ms ease-out;
+}
+
+/* ── Typography Utility classes ── */
+.font-sans { font-family: var(--font-sans); }
+.font-metric { font-family: var(--font-metric); }
+
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-xl { font-size: var(--text-xl); }
+.text-3xl { font-size: var(--text-3xl); }

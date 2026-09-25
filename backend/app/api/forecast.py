@@ -1,7 +1,9 @@
 """
-AERIS Forecast API Router (backend/app/api/forecast.py)
-=======================================================
-Exposes POST /api/v1/forecast for 1-hour-ahead PM2.5 city forecasting.
+Forecast API Router (backend/app/api/forecast.py)
+--------------------------------------------------
+Exposes endpoints for PM2.5 city forecasting:
+- GET  /api/v1/forecast: Dashboard forecast summary (1-hour-ahead estimate).
+- POST /api/v1/forecast: Dynamic 1-hour-ahead ML inference from 25 canonical predictors.
 
 SCIENTIFIC SEMANTICS:
 - input_timestamp: timestamp t of supplied predictors.
@@ -11,21 +13,42 @@ SCIENTIFIC SEMANTICS:
 """
 
 from datetime import datetime
-from pathlib import Path
-import sys
-from typing import Any, Dict
-
-# Ensure project root is in sys.path
-root_dir = Path(__file__).resolve().parent.parent.parent.parent
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
-
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
+from backend.app.schemas.forecast import ForecastResponse as DashboardForecastResponse
+from backend.app.services.forecast_service import ForecastService
 from backend.app.services.inference_service import run_forecast_service
 
-router = APIRouter(prefix="/api/v1", tags=["forecast"])
+router = APIRouter(tags=["Forecast"])
+
+# Singleton or cached forecast service instance
+_forecast_service_instance = None
+
+
+def get_forecast_service() -> ForecastService:
+    global _forecast_service_instance
+    if _forecast_service_instance is None:
+        _forecast_service_instance = ForecastService()
+    return _forecast_service_instance
+
+
+@router.get(
+    "/forecast",
+    response_model=DashboardForecastResponse,
+    summary="Get 1-hour-ahead PM2.5 forecast",
+    description=(
+        "Generates a genuine 1-hour-ahead PM2.5 prediction for Pune using the serialized XGBoost "
+        "model artifact (xgb-pm25-v1). The model predicts pm25_target_t_plus_1 = PM2.5(t+1) based "
+        "on the CAMS Global modeled atmospheric target. Horizon is strictly 1 hour (horizonHours = 1) "
+        "with provenance strictly labeled as 'model_estimate'."
+    ),
+)
+def get_pm25_forecast(
+    service: ForecastService = Depends(get_forecast_service),
+) -> DashboardForecastResponse:
+    """Returns genuine 1-hour-ahead PM2.5 forecast."""
+    return service.generate_forecast()
 
 
 class ForecastRequest(BaseModel):
@@ -61,7 +84,7 @@ class ForecastRequest(BaseModel):
     input_timestamp: datetime
 
 
-class ForecastResponse(BaseModel):
+class InferenceForecastResponse(BaseModel):
     """
     Stable response schema reporting 1-hour-ahead PM2.5 forecast and scientific metadata.
     """
@@ -72,13 +95,16 @@ class ForecastResponse(BaseModel):
     target_source_type: str
 
 
-@router.post("/forecast", response_model=ForecastResponse)
-def create_forecast(request: ForecastRequest) -> ForecastResponse:
+@router.post(
+    "/forecast",
+    response_model=InferenceForecastResponse,
+)
+def create_forecast(request: ForecastRequest) -> InferenceForecastResponse:
     """
     Computes 1-hour-ahead PM2.5 forecast from verified urban predictors.
 
     Returns:
-        ForecastResponse:
+        InferenceForecastResponse:
         {
             "input_timestamp": "...",
             "forecast_timestamp": "...",
@@ -89,7 +115,7 @@ def create_forecast(request: ForecastRequest) -> ForecastResponse:
     """
     try:
         result = run_forecast_service(request)
-        return ForecastResponse(**result)
+        return InferenceForecastResponse(**result)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
