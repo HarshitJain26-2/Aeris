@@ -6,6 +6,40 @@ interface ScenarioCompareProps {
   result: ScenarioResult;
 }
 
+interface ScenarioTooltipPayloadItem {
+  payload: {
+    name: string;
+    pm25: number;
+    type: string;
+  };
+}
+
+interface ScenarioTooltipProps {
+  active?: boolean;
+  payload?: ScenarioTooltipPayloadItem[];
+}
+
+const CustomTooltip: React.FC<ScenarioTooltipProps> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const { name, pm25 } = payload[0].payload;
+    return (
+      <div style={{
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        padding: '8px 12px',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-pop)',
+      }}>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>{name}</p>
+        <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+          {pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
   const data = [
     {
@@ -24,27 +58,6 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
       type: 'change'
     }
   ];
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const { name, pm25, type } = payload[0].payload;
-      return (
-        <div style={{
-          background: 'var(--color-bg-elevated)',
-          border: '1px solid var(--color-border)',
-          padding: '8px 12px',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-pop)',
-        }}>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>{name}</p>
-          <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-            {pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div style={{ width: '100%', height: '180px', minWidth: 0, flexShrink: 0 }}>

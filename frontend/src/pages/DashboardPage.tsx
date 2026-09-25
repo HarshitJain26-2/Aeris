@@ -5,18 +5,34 @@ import { DriverPanel } from '../components/panels/DriverPanel';
 import { ScenarioPanel } from '../components/panels/ScenarioPanel';
 import { HotspotMap } from '../components/map/HotspotMap';
 import { LayerToggle } from '../components/map/LayerToggle';
+import { ZoneSelector } from '../components/map/ZoneSelector';
 import { MapLegend } from '../components/map/MapLegend';
 import { ZoneInfoPanel } from '../components/panels/ZoneInfoPanel';
 import { useHotspots } from '../hooks/useHotspots';
-import type { HotspotFeature } from '../types/hotspot';
+import { useAirQuality } from '../hooks/useAirQuality';
+import { useForecast } from '../hooks/useForecast';
+import { useZones } from '../hooks/useZones';
+import type { SelectedMapEntity } from '../types/zone';
 
 export const DashboardPage: React.FC = () => {
   const [mapMode, setMapMode] = useState<'observed' | 'modelled'>('observed');
-  const [selectedZone, setSelectedZone] = useState<HotspotFeature | null>(null);
-  const { data: hotspots, loading: hotspotsLoading } = useHotspots();
+  const [selectedEntity, setSelectedEntity] = useState<SelectedMapEntity | null>(null);
+
+  const { data: hotspots } = useHotspots();
+  const { data: airQuality } = useAirQuality();
+  const { data: forecast } = useForecast();
+  const { data: zones } = useZones();
 
   return (
-    <div className="dashboard-grid h-full w-full p-4 gap-4 grid grid-cols-1 xl:[grid-template-columns:minmax(280px,320px)_minmax(400px,1fr)_minmax(320px,360px)] overflow-y-auto xl:overflow-hidden">
+    <div
+      className="dashboard-grid h-full w-full p-4 gap-4 overflow-hidden"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(280px, 320px) minmax(400px, 1fr) minmax(320px, 360px)',
+        gridTemplateRows: '1fr',
+        height: '100%',
+      }}
+    >
       {/* LEFT COLUMN: Data & Analysis */}
       <div className="flex flex-col gap-4 xl:overflow-y-auto xl:pr-1 min-w-0 order-2 xl:order-1 xl:pb-5">
         <ObservedPanel />
@@ -25,20 +41,43 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* CENTER COLUMN: Map Hero & Zone Panel */}
-      <div className="flex flex-col gap-4 min-h-[600px] xl:h-full xl:min-h-0 min-w-0 order-1 xl:order-2">
-        <div className="relative flex-1 rounded-xl overflow-hidden border border-border shadow-card bg-bg-surface min-h-[400px] xl:min-h-0">
-          <HotspotMap 
-            geoJson={hotspots} 
-            mode={mapMode} 
-            loading={hotspotsLoading}
-            onZoneSelect={setSelectedZone} 
+      <div className="flex flex-col gap-4 h-full min-w-0">
+        <div className="relative flex-1 rounded-xl overflow-hidden border border-border shadow-card bg-bg-surface min-h-0">
+          <HotspotMap
+            geoJson={hotspots}
+            mode={mapMode}
+            selectedEntity={selectedEntity}
+            onSelectEntity={setSelectedEntity}
+            airQuality={airQuality}
+            forecast={forecast}
           />
           <LayerToggle mode={mapMode} onChange={setMapMode} />
+          <ZoneSelector
+            zones={zones || []}
+            selectedEntity={selectedEntity}
+            onSelectZone={(zone) => {
+              if (!zone) {
+                setSelectedEntity(null);
+              } else {
+                const isModelled = mapMode === 'modelled';
+                const forecastTarget = forecast?.points?.find((p) => p.type === 'forecast');
+                setSelectedEntity({
+                  type: 'zone',
+                  zone,
+                  airshedPm25: isModelled ? (forecastTarget?.pm25 ?? 96.1) : (airQuality?.pm25 ?? 94.2),
+                  airshedAqi: isModelled ? (forecastTarget?.aqi ?? 215) : (airQuality?.aqi ?? 212),
+                  airshedBand: isModelled ? (forecastTarget?.aqiBand ?? 'Poor') : (airQuality?.aqiBand ?? 'Poor'),
+                  timestamp: isModelled ? (forecast?.generatedAt ?? null) : (airQuality?.timestamp ?? null),
+                  dataSource: isModelled ? 'model_estimate' : 'DEMO_FIXTURE',
+                });
+              }
+            }}
+          />
           <MapLegend />
         </div>
-        
-        {/* New Persistent Zone Panel */}
-        <ZoneInfoPanel feature={selectedZone} />
+
+        {/* Selected Zone or Hotspot Detail Panel */}
+        <ZoneInfoPanel selectedEntity={selectedEntity} mode={mapMode} />
       </div>
 
       {/* RIGHT COLUMN: Scenarios & Legend */}
