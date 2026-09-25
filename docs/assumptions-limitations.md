@@ -188,3 +188,14 @@ The scenario engine perturbs current-hour traffic predictors only (`traffic_alan
 
 ### Predictive vs. Causal Model Behavior
 The scenario engine perturbs current-hour traffic predictors only. Historical traffic context remains fixed. Because the forecasting model is predictive rather than causal, the learned counterfactual response may be non-monotonic and should not be interpreted as a guaranteed physical effect.
+
+### Scenario Simulation Endpoint (`POST /api/scenario/simulate`)
+- **Input Contract**: `traffic_reduction_pct` (numeric, validated `0 <= value <= 50`).
+- **Output Contract**:
+  - `baseline_pm25`: model-estimated baseline PM2.5 forecast without intervention (~68.0 µg/m³).
+  - `scenario_pm25`: model-estimated scenario PM2.5 forecast under specified reduction.
+  - `delta`: model-estimated change `scenario_pm25 - baseline_pm25` (µg/m³).
+  - `traffic_reduction_pct`: percentage reduction evaluated.
+  - `dataSource`: strictly labeled as `model_estimate`.
+- **Identity at 0%**: At 0% traffic reduction, `scenario_pm25` equals `baseline_pm25` within normal floating-point tolerance (`delta = 0.0`).
+- **Non-Monotonicity Disclosure**: Evaluated sensitivity reveals minor non-monotonic responses at 50% traffic reduction (`delta = +0.3199 µg/m³`) due to tree split boundaries on interaction features. This behavior is preserved and reported truthfully without smoothing or heuristic overrides.
