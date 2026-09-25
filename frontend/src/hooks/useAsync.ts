@@ -13,17 +13,20 @@ export function useAsync<T>(fetcher: () => Promise<T>): AsyncState<T> {
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
-  const refetch = useCallback(() => setTick((t) => t + 1), []);
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    setTick((t) => t + 1);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     fetcher()
       .then((result) => {
         if (!cancelled) {
           setData(result);
           setLoading(false);
+          setError(null);
         }
       })
       .catch((err: unknown) => {
@@ -33,8 +36,7 @@ export function useAsync<T>(fetcher: () => Promise<T>): AsyncState<T> {
         }
       });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick]);
+  }, [fetcher, tick]);
 
   return { data, loading, error, refetch };
 }

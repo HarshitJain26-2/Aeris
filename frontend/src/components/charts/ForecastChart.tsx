@@ -14,7 +14,6 @@ import {
 import { Skeleton } from '../ui/Skeleton';
 import { ErrorState } from '../ui/ErrorState';
 import type { ForecastPoint } from '../../types/forecast';
-import { CPCB_BANDS } from '../../lib/cpcbAqi';
 
 interface ForecastChartProps {
   data: ForecastPoint[];
@@ -22,6 +21,48 @@ interface ForecastChartProps {
   error?: boolean;
   onRetry?: () => void;
 }
+
+interface TooltipPayloadItem {
+  payload: {
+    time: string;
+    pm25: number;
+    isForecast: boolean;
+    observedPm25: number | null;
+    forecastPm25: number | null;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const dataPoint = payload[0].payload;
+    return (
+      <div style={{
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        padding: '8px 12px',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-pop)',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '12px'
+      }}>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{label}</p>
+        <p style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>
+          {dataPoint.pm25} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
+        </p>
+        <p style={{ color: dataPoint.isForecast ? 'var(--color-modelled)' : 'var(--color-observed)', marginTop: '2px' }}>
+          {dataPoint.isForecast ? 'Model Estimate' : 'Observed'}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export const ForecastChart: React.FC<ForecastChartProps> = ({ data, loading, error, onRetry }) => {
   if (error) {
@@ -58,32 +99,6 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({ data, loading, err
   if (lastObservedIndex !== -1 && lastObservedIndex < chartData.length - 1) {
     chartData[lastObservedIndex].forecastPm25 = chartData[lastObservedIndex].observedPm25;
   }
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = payload[0].payload;
-      return (
-        <div style={{
-          background: 'var(--color-bg-elevated)',
-          border: '1px solid var(--color-border)',
-          padding: '8px 12px',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-pop)',
-          fontFamily: 'var(--font-sans)',
-          fontSize: '12px'
-        }}>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: '4px' }}>{label}</p>
-          <p style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>
-            {dataPoint.pm25} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
-          </p>
-          <p style={{ color: dataPoint.isForecast ? 'var(--color-modelled)' : 'var(--color-observed)', marginTop: '2px' }}>
-            {dataPoint.isForecast ? 'Model Estimate' : 'Observed'}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div style={{ width: '100%', height: '220px', minWidth: 0 }}>
