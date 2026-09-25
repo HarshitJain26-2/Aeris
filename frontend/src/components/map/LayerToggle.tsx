@@ -41,8 +41,8 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ mode, onChange }) => {
           fontWeight: mode === 'observed' ? 600 : 500,
           cursor: 'pointer',
           transition: 'all 200ms ease',
-          outline: 'none',
         }}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-accent"
       >
         Observed
       </button>
@@ -59,8 +59,8 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ mode, onChange }) => {
           fontWeight: mode === 'modelled' ? 600 : 500,
           cursor: 'pointer',
           transition: 'all 200ms ease',
-          outline: 'none',
         }}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-accent"
       >
         Model Estimate
       </button>

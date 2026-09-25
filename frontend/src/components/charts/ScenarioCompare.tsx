@@ -71,7 +71,14 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
             tickLine={false} 
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-          <Bar dataKey="pm25" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={true} animationDuration={600}>
+          <Bar 
+            dataKey="pm25" 
+            radius={[4, 4, 0, 0]} 
+            maxBarSize={40} 
+            isAnimationActive={true} 
+            animationDuration={700}
+            animationEasing="ease-out"
+          >
             <LabelList dataKey="pm25" position="top" fill="var(--color-text-primary)" fontSize={11} fontWeight={600} fontFamily="var(--font-mono)" />
             {data.map((entry, index) => (
               <Cell 

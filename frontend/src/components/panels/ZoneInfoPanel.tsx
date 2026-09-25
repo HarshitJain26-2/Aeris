@@ -27,56 +27,37 @@ export const ZoneInfoPanel: React.FC<ZoneInfoPanelProps> = ({ feature }) => {
   const trafficIntensity = dominantDriver === 'Traffic' ? 'High' : 'Moderate';
 
   return (
-    <Card className="p-0 overflow-hidden flex flex-row min-h-[200px]">
-      <div className="flex-1 p-5 flex flex-col gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-text-primary m-0">{name}</h2>
-          <p className="text-sm text-text-secondary m-0">{locality} • {areaType}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-          <div className="flex justify-between items-center border-b border-border pb-1">
-            <span className="text-xs text-text-secondary uppercase tracking-wider">PM2.5</span>
-            <span className="font-mono font-semibold text-text-primary">{pm25} <span className="text-[10px] text-text-muted">µg/m³</span></span>
-          </div>
-          
-          <div className="flex justify-between items-center border-b border-border pb-1">
-            <span className="text-xs text-text-secondary uppercase tracking-wider">AQI</span>
-            <AqiBadge aqi={aqi} band={aqiBand} size="sm" />
-          </div>
-
-          <div className="flex justify-between items-center border-b border-border pb-1">
-            <span className="text-xs text-text-secondary uppercase tracking-wider">Temperature</span>
-            <span className="font-mono font-semibold text-text-primary">{temp}</span>
-          </div>
-
-          <div className="flex justify-between items-center border-b border-border pb-1">
-            <span className="text-xs text-text-secondary uppercase tracking-wider">Humidity</span>
-            <span className="font-mono font-semibold text-text-primary">{humidity}</span>
-          </div>
-
-          <div className="flex justify-between items-center border-b border-border pb-1 col-span-2">
-            <span className="text-xs text-text-secondary uppercase tracking-wider">Traffic Intensity</span>
-            <span className="font-semibold text-text-primary">{trafficIntensity}</span>
-          </div>
-        </div>
+    <Card className="p-5 flex flex-col gap-5 min-h-[200px]">
+      <div>
+        <h2 className="text-xl font-bold text-text-primary m-0">{name}</h2>
+        <p className="text-sm text-text-secondary m-0 mt-1">{locality} • {areaType}</p>
       </div>
-      
-      <div className="w-[200px] bg-bg-elevated relative overflow-hidden hidden sm:block shrink-0 border-l border-border">
-        <img 
-          src="/placeholder-zone.jpg" 
-          alt={`Photo of ${name}`}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        {/* Soft gradient overlay for aesthetics to blend it slightly */}
-        <div 
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to right, var(--color-bg-surface), transparent 30%)',
-            pointerEvents: 'none'
-          }}
-        />
+
+      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div className="flex justify-between items-center border-b border-border pb-2">
+          <span className="text-xs text-text-secondary uppercase tracking-wider">PM2.5</span>
+          <span className="font-mono font-semibold text-text-primary">{pm25} <span className="text-[10px] text-text-muted">µg/m³</span></span>
+        </div>
+        
+        <div className="flex justify-between items-center border-b border-border pb-2">
+          <span className="text-xs text-text-secondary uppercase tracking-wider">AQI</span>
+          <AqiBadge aqi={aqi} band={aqiBand} size="sm" />
+        </div>
+
+        <div className="flex justify-between items-center border-b border-border pb-2">
+          <span className="text-xs text-text-secondary uppercase tracking-wider">Temperature</span>
+          <span className="font-mono font-semibold text-text-primary">{temp}</span>
+        </div>
+
+        <div className="flex justify-between items-center border-b border-border pb-2">
+          <span className="text-xs text-text-secondary uppercase tracking-wider">Humidity</span>
+          <span className="font-mono font-semibold text-text-primary">{humidity}</span>
+        </div>
+
+        <div className="flex justify-between items-center border-b border-border pb-2 col-span-2">
+          <span className="text-xs text-text-secondary uppercase tracking-wider">Traffic Intensity</span>
+          <span className="font-semibold text-text-primary">{trafficIntensity}</span>
+        </div>
       </div>
     </Card>
   );

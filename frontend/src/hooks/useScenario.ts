@@ -6,7 +6,7 @@
  *
  * No artificial loading delay. Loading state reflects real async work only.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { ScenarioInput, ScenarioResult } from '../types/scenario';
 import type { AirQualityReading } from '../types/airQuality';
 import { computeScenario } from '../lib/scenarioCalculator';
@@ -19,29 +19,44 @@ interface ScenarioState {
   reset: () => void;
 }
 
+let globalResult: ScenarioResult | null = null;
+let globalLoading = false;
+let globalError: string | null = null;
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach(l => l());
+}
+
 export function useScenario(): ScenarioState {
-  const [result, setResult] = useState<ScenarioResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState({ result: globalResult, loading: globalLoading, error: globalError });
+
+  useEffect(() => {
+    const handler = () => setState({ result: globalResult, loading: globalLoading, error: globalError });
+    listeners.add(handler);
+    return () => { listeners.delete(handler); };
+  }, []);
 
   const run = useCallback((input: ScenarioInput, baseline: AirQualityReading) => {
-    setLoading(true);
-    setError(null);
+    globalLoading = true;
+    globalError = null;
+    notify();
     try {
       // Synchronous deterministic calculation — no fake delay
-      const r = computeScenario(input, baseline);
-      setResult(r);
+      globalResult = computeScenario(input, baseline);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Calculation failed');
+      globalError = err instanceof Error ? err.message : 'Calculation failed';
     } finally {
-      setLoading(false);
+      globalLoading = false;
+      notify();
     }
   }, []);
 
   const reset = useCallback(() => {
-    setResult(null);
-    setError(null);
+    globalResult = null;
+    globalError = null;
+    notify();
   }, []);
 
-  return { result, loading, error, run, reset };
+  return { result: state.result, loading: state.loading, error: state.error, run, reset };
 }

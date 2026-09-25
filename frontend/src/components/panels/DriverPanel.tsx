@@ -3,6 +3,7 @@ import { Card } from '../ui/Card';
 import { ModelledTag } from '../status/ModelledTag';
 import { SkeletonPanel } from '../ui/Skeleton';
 import { ErrorState } from '../ui/ErrorState';
+import { EmptyState } from '../ui/EmptyState';
 import { useSourceAttribution } from '../../hooks/useSourceAttribution';
 import { DriverDonut } from '../charts/DriverDonut';
 
@@ -33,6 +34,8 @@ export const DriverPanel: React.FC = () => {
                    <div className="skeleton w-full h-4 rounded-md opacity-40"></div>
                    <div className="skeleton w-full h-4 rounded-md opacity-40"></div>
                  </>
+              ) : data.drivers.length === 0 ? (
+                <EmptyState title="Attribution data not yet available for this period" hint="Check back later." />
               ) : data.drivers.map((d, i) => (
                 <div key={d.category} className="flex justify-between items-center gap-2">
                   <div className="flex items-center gap-2 truncate">
