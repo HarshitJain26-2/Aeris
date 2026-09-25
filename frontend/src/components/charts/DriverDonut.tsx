@@ -8,6 +8,42 @@ interface DriverDonutProps {
   loading?: boolean;
 }
 
+interface DriverTooltipPayloadItem {
+  payload: DriverAttribution & { fill?: string };
+}
+
+interface DriverTooltipProps {
+  active?: boolean;
+  payload?: DriverTooltipPayloadItem[];
+}
+
+const CustomTooltip: React.FC<DriverTooltipProps> = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div style={{
+        background: 'var(--color-bg-elevated)',
+        border: '1px solid var(--color-border)',
+        padding: '8px 12px',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-pop)',
+        maxWidth: '180px'
+      }}>
+        <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+          {data.category}
+        </p>
+        <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
+          ~{data.estimatedPct}% <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>(DEMO)</span>
+        </p>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
+          {data.description}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) => {
   if (loading) {
     return (
@@ -22,33 +58,6 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) =>
     'Traffic': 'var(--chart-cat-1)',
     'Industrial': 'var(--chart-cat-2)',
     'Residential/Biomass': 'var(--chart-cat-3)',
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div style={{
-          background: 'var(--color-bg-elevated)',
-          border: '1px solid var(--color-border)',
-          padding: '8px 12px',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-pop)',
-          maxWidth: '180px'
-        }}>
-          <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-            {data.category}
-          </p>
-          <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
-            ~{data.estimatedPct}% <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>(DEMO)</span>
-          </p>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
-            {data.description}
-          </p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
