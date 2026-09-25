@@ -12,6 +12,8 @@ import type { AirQualityReading } from '../types/airQuality';
 import type { ForecastResponse } from '../types/forecast';
 import type { HotspotGeoJSON } from '../types/hotspot';
 import type { DriverAttributionResponse } from '../types/source';
+import type { UrbanZone } from '../types/zone';
+import { DOCUMENTED_ZONES_LIST } from '../data/puneZones';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -61,3 +63,13 @@ export async function getDriverAttribution(): Promise<DriverAttributionResponse>
   }
   return fetchJson<DriverAttributionResponse>('/api/v1/drivers');
 }
+
+// ── Monitored Zones ──────────────────────────────────────────
+
+export async function getZones(): Promise<UrbanZone[]> {
+  if (USE_MOCK) {
+    return Promise.resolve(DOCUMENTED_ZONES_LIST);
+  }
+  return fetchJson<UrbanZone[]>('/api/v1/zones');
+}
+
