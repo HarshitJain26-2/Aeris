@@ -27,7 +27,6 @@ export const Button: React.FC<ButtonProps> = ({
     border: 'none',
     borderRadius: 'var(--radius-md)',
     transition: 'all var(--transition-base)',
-    outline: 'none',
     padding: size === 'sm' ? '6px 12px' : '9px 18px',
     fontSize: size === 'sm' ? 'var(--text-sm)' : 'var(--text-base)',
     ...(variant === 'primary' && {
@@ -51,6 +50,7 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
+      className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-base ${props.className || ''}`}
       disabled={disabled || loading}
       aria-busy={loading}
       style={baseStyle}

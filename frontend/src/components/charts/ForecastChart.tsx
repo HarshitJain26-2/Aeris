@@ -68,7 +68,7 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({ data, loading, err
   if (error) {
     return (
       <div style={{ width: '100%', height: '220px' }}>
-        <ErrorState onRetry={onRetry} />
+        <ErrorState title="Forecast service unavailable" onRetry={onRetry} />
       </div>
     );
   }

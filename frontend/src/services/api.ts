@@ -72,4 +72,3 @@ export async function getZones(): Promise<UrbanZone[]> {
   }
   return fetchJson<UrbanZone[]>('/api/v1/zones');
 }
-

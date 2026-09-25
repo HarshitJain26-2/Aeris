@@ -48,7 +48,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       </p>
     </div>
     {onRetry && (
-      <Button variant="ghost" size="sm" onClick={onRetry}>
+      <Button variant="ghost" size="sm" onClick={onRetry} aria-label="Retry">
         <RefreshCw size={13} aria-hidden="true" />
         Retry
       </Button>

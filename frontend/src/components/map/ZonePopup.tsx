@@ -50,6 +50,7 @@ export const ZonePopup: React.FC<ZonePopupProps> = ({ feature, onClose }) => {
           cursor: 'pointer',
           padding: '4px',
         }}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"
         aria-label="Close popup"
       >
         ✕

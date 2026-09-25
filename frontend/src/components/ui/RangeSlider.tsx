@@ -71,6 +71,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
 
         <input
           type="range"
+          className="peer"
           min={min}
           max={max}
           step={step}
@@ -101,6 +102,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             border: disabled ? 'none' : '2px solid var(--color-accent)',
             pointerEvents: 'none',
           }}
+          className="peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-bg-surface"
         />
       </div>
     </div>

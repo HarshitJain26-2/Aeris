@@ -85,20 +85,35 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
       {/* Right section: Pills & User */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
         
-        {/* Demo Mode Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          padding: '4px 10px',
-          background: 'var(--aqi-moderate-bg)',
-          color: 'var(--aqi-moderate)',
-          borderRadius: 'var(--radius-full)',
-          fontSize: '0.65rem',
-          fontWeight: 700,
-          letterSpacing: '0.05em',
-          border: '1px solid rgba(214, 164, 0, 0.3)'
-        }}>
-          DEMO MODE · MOCK DATA
+        {/* Status Indicators */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Data Available Indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--aqi-good)', boxShadow: '0 0 0 2px var(--aqi-good-bg)' }} />
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: '0.05em' }}>
+              DATA AVAILABLE
+            </span>
+          </div>
+
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+            Last updated: {lastUpdated ? timeStr : '10:45 AM'}
+          </div>
+
+          {/* Demo Mode Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '4px 10px',
+            background: 'var(--aqi-moderate-bg)',
+            color: 'var(--aqi-moderate)',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            border: '1px solid rgba(214, 164, 0, 0.3)'
+          }}>
+            DEMO MODE · MOCK DATA
+          </div>
         </div>
 
         {/* Location Pill */}

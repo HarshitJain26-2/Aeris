@@ -1,14 +1,21 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import type { HotspotGeoJSON, HotspotProperties } from '../../types/hotspot';
+import type { HotspotGeoJSON, HotspotProperties, HotspotFeature } from '../../types/hotspot';
 import type { SelectedMapEntity, UrbanZone } from '../../types/zone';
 import { PUNE_DOCUMENTED_ZONES, DOCUMENTED_ZONES_LIST, ZONE_LOOKUP } from '../../data/puneZones';
 import type { AirQualityReading } from '../../types/airQuality';
 import type { ForecastResponse } from '../../types/forecast';
 
+import { EmptyState } from '../ui/EmptyState';
+import { ErrorState } from '../ui/ErrorState';
+import { Skeleton } from '../ui/Skeleton';
+import { useScenario } from '../../hooks/useScenario';
+
 interface HotspotMapProps {
   geoJson: HotspotGeoJSON | null;
   mode: 'observed' | 'modelled';
+  loading?: boolean;
+  onZoneSelect?: (feature: HotspotFeature | null) => void;
   selectedEntity: SelectedMapEntity | null;
   onSelectEntity: (entity: SelectedMapEntity | null) => void;
   airQuality?: AirQualityReading | null;
@@ -21,6 +28,8 @@ const DEFAULT_ZOOM = 12.8;
 export const HotspotMap: React.FC<HotspotMapProps> = ({
   geoJson,
   mode,
+  loading,
+  onZoneSelect,
   selectedEntity,
   onSelectEntity,
   airQuality,
@@ -29,8 +38,10 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const hoverPopupRef = useRef<maplibregl.Popup | null>(null);
+  const { result: scenarioResult } = useScenario();
 
   // Initialize MapLibre
   useEffect(() => {
@@ -58,6 +69,12 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
     map.current.on('load', () => {
       setMapLoaded(true);
       map.current?.resize();
+    });
+
+    map.current.on('error', (e) => {
+      if (e && e.error) {
+        setMapError(true);
+      }
     });
 
     const resizeObserver = new ResizeObserver(() => {
@@ -349,6 +366,8 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
         type: 'circle',
         source: sourceId,
         paint: {
+          'circle-color-transition': { duration: 800, delay: 0 } as any,
+          'circle-radius-transition': { duration: 800, delay: 0 } as any,
           'circle-radius': [
             'step',
             ['get', 'aqi'],
@@ -369,7 +388,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
           ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#1a1917',
-        },
+        } as any,
       });
 
       // Hotspot hover interaction
@@ -499,6 +518,42 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
     }
   }, [mapLoaded, selectedEntity]);
 
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !map.current.getLayer('hotspots-points')) return;
+
+    const reductionFactor = scenarioResult ? Math.max(0, 1 - (scenarioResult.deltaPct / 100)) : 1;
+    const effectiveAqi = ['*', ['get', 'aqi'], reductionFactor];
+
+    map.current.setPaintProperty('hotspots-points', 'circle-color', [
+      'step',
+      effectiveAqi,
+      '#4ADE80',
+      50, '#FACC15',
+      100, '#FB923C',
+      200, '#EF4444',
+      300, '#991B1B'
+    ]);
+    
+    map.current.setPaintProperty('hotspots-points', 'circle-radius', [
+      'step',
+      effectiveAqi,
+      6,
+      50, 8,
+      100, 10,
+      200, 12,
+      300, 14
+    ]);
+  }, [scenarioResult, mapLoaded]);
+
+  // Fallback timeout to ensure mapLoaded doesn't get stuck if MapLibre fails to emit 'load' silently
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    if (map.current && !mapLoaded) {
+      timeout = setTimeout(() => setMapLoaded(true), 2000);
+    }
+    return () => clearTimeout(timeout);
+  }, [map.current, mapLoaded]);
+
   return (
     <div
       style={{
@@ -511,6 +566,37 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       }}
     >
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+      {loading && (
+        <div className="absolute inset-0 z-[70] bg-bg-base pointer-events-none">
+          <Skeleton width="100%" height="100%" borderRadius="var(--radius-xl)" />
+        </div>
+      )}
+      {mapError && !loading && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg-base/90 p-4">
+          <ErrorState title="Map failed to load" onRetry={() => window.location.reload()} />
+        </div>
+      )}
+      {(!geoJson || !geoJson.features || geoJson.features.length === 0) && !mapError && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg-base/80 backdrop-blur-sm p-4">
+          <EmptyState title="No hotspots detected in this time window" hint="There is no zone data available for this time period." />
+        </div>
+      )}
+      {/* Keyboard accessible zone list */}
+      {geoJson && geoJson.features && geoJson.features.length > 0 && (
+        <ul className="sr-only focus-within:not-sr-only focus-within:absolute focus-within:top-4 focus-within:left-4 focus-within:z-[60] focus-within:bg-bg-elevated focus-within:p-2 focus-within:shadow-card focus-within:rounded-lg focus-within:max-h-[300px] focus-within:overflow-y-auto focus-within:border focus-within:border-border">
+          <li className="text-xs font-semibold text-text-secondary px-2 mb-2 uppercase">Keyboard Map Navigation</li>
+          {geoJson.features.map((feature, i) => (
+            <li key={feature.properties.id || i}>
+              <button
+                onClick={() => onZoneSelect?.(feature)}
+                className="w-full text-left px-2 py-1.5 text-sm text-text-primary rounded hover:bg-bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                {feature.properties.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

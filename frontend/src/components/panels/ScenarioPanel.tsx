@@ -3,23 +3,37 @@ import { Card } from '../ui/Card';
 import { ModelledTag } from '../status/ModelledTag';
 import { RangeSlider } from '../ui/RangeSlider';
 import { Button } from '../ui/Button';
+import { Spinner } from '../ui/Spinner';
+import { EmptyState } from '../ui/EmptyState';
+import { ErrorState } from '../ui/ErrorState';
 import { ScenarioCompare } from '../charts/ScenarioCompare';
 import { useScenario } from '../../hooks/useScenario';
 import { useAirQuality } from '../../hooks/useAirQuality';
+import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
+
+const AnimatedNumber = ({ value }: { value: number }) => {
+  const animatedValue = useAnimatedNumber(value);
+  return <>{animatedValue.toFixed(1)}</>;
+};
 
 export const ScenarioPanel: React.FC = () => {
   const [trafficReduction, setTrafficReduction] = useState(30);
-  const { run, result, loading } = useScenario();
+  const [isSimulating, setIsSimulating] = useState(false);
+  const { run, result, loading, error, reset } = useScenario();
   const { data: baseline } = useAirQuality();
 
   const handleRun = () => {
     if (baseline) {
-      run({ trafficReductionPct: trafficReduction }, baseline);
+      setIsSimulating(true);
+      setTimeout(() => {
+        run({ trafficReductionPct: trafficReduction }, baseline);
+        setIsSimulating(false);
+      }, 1000);
     }
   };
 
   return (
-    <Card className="p-4 flex flex-col gap-6 shrink-0 border-l-2 border-modelled relative min-w-0">
+    <Card className="p-4 flex flex-col gap-6 flex-1 border-l-2 border-modelled relative min-w-0">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">Digital Twin Simulation</h2>
@@ -39,8 +53,8 @@ export const ScenarioPanel: React.FC = () => {
         
         <Button 
           onClick={handleRun} 
-          loading={loading}
-          disabled={!baseline}
+          loading={loading || isSimulating}
+          disabled={!baseline || isSimulating}
           className="w-full"
         >
           Run Scenario
@@ -48,13 +62,25 @@ export const ScenarioPanel: React.FC = () => {
       </div>
 
       <div className="flex-1 flex flex-col justify-end">
-        {result ? (
+        {error ? (
+          <div className="h-[200px] flex items-center justify-center p-6 border border-dashed border-border rounded-lg">
+            <ErrorState title="Scenario failed to compute" onRetry={handleRun} />
+          </div>
+        ) : isSimulating || loading ? (
+          <div className="h-[200px] flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-lg gap-4">
+            <Spinner size={24} color="var(--color-accent)" />
+            <p className="text-sm font-medium text-text-secondary animate-pulse">
+              Computing scenario...
+            </p>
+          </div>
+        ) : result ? (
           <div className="fade-in flex flex-col gap-4 mt-2">
             <div className="flex justify-between items-start">
               <div>
                 <ModelledTag label="MODELLED — SCENARIO" />
                 <p className="text-xs text-text-secondary mt-2">Traffic reduced by {trafficReduction}%</p>
               </div>
+              <Button onClick={reset} className="text-xs py-1 px-3 bg-bg-elevated border border-border text-text-secondary hover:text-text-primary">Reset</Button>
             </div>
             
             <div className="grid grid-cols-2 gap-4 border-b border-border pb-4 mt-1">
@@ -62,7 +88,7 @@ export const ScenarioPanel: React.FC = () => {
                 <p className="text-xs text-text-secondary mb-1">Baseline PM2.5</p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-mono font-medium text-text-primary">
-                    {result.baseline.pm25}
+                    <AnimatedNumber value={result.baseline.pm25} />
                   </span>
                   <span className="text-xs text-text-muted">µg/m³</span>
                 </div>
@@ -71,7 +97,7 @@ export const ScenarioPanel: React.FC = () => {
                 <p className="text-xs text-text-secondary mb-1">Modelled PM2.5</p>
                 <div className="flex items-baseline gap-1 justify-end">
                   <span className="text-lg font-mono font-bold text-modelled">
-                    {result.modelled.pm25}
+                    <AnimatedNumber value={result.modelled.pm25} />
                   </span>
                   <span className="text-xs text-text-muted">µg/m³</span>
                 </div>
@@ -82,14 +108,14 @@ export const ScenarioPanel: React.FC = () => {
               <div>
                 <p className="text-xs text-text-secondary mb-1">Absolute Change</p>
                 <span className="text-sm font-mono text-observed">
-                  -{result.deltaAbsolute} µg/m³
+                  -<AnimatedNumber value={result.deltaAbsolute} /> µg/m³
                 </span>
               </div>
               <div className="text-right">
                 <p className="text-xs text-text-secondary mb-1">Projected Impact</p>
                 <div className="flex items-baseline gap-1 justify-end">
                   <span className="text-2xl font-bold font-mono text-observed">
-                    -{result.deltaPct}%
+                    -<AnimatedNumber value={result.deltaPct} />%
                   </span>
                 </div>
               </div>
@@ -101,9 +127,7 @@ export const ScenarioPanel: React.FC = () => {
           </div>
         ) : (
           <div className="h-[200px] flex items-center justify-center text-center p-6 border border-dashed border-border rounded-lg">
-            <p className="text-sm text-text-secondary">
-              Current baseline: {baseline ? baseline.pm25 : '--'} µg/m³
-            </p>
+            <EmptyState title="No scenario result" hint="Run a scenario to see the projected outcome" />
           </div>
         )}
       </div>

@@ -3,7 +3,6 @@ import { ObservedPanel } from '../components/panels/ObservedPanel';
 import { ForecastPanel } from '../components/panels/ForecastPanel';
 import { DriverPanel } from '../components/panels/DriverPanel';
 import { ScenarioPanel } from '../components/panels/ScenarioPanel';
-import { AqiLegendPanel } from '../components/panels/AqiLegendPanel';
 import { HotspotMap } from '../components/map/HotspotMap';
 import { LayerToggle } from '../components/map/LayerToggle';
 import { ZoneSelector } from '../components/map/ZoneSelector';
@@ -35,7 +34,7 @@ export const DashboardPage: React.FC = () => {
       }}
     >
       {/* LEFT COLUMN: Data & Analysis */}
-      <div className="flex flex-col gap-4 overflow-y-auto pr-1 min-w-0" style={{ paddingBottom: '20px' }}>
+      <div className="flex flex-col gap-4 xl:overflow-y-auto xl:pr-1 min-w-0 order-2 xl:order-1 xl:pb-5">
         <ObservedPanel />
         <ForecastPanel />
         <DriverPanel />
@@ -82,9 +81,8 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* RIGHT COLUMN: Scenarios & Legend */}
-      <div className="flex flex-col gap-4 h-full min-w-0 overflow-y-auto pr-1" style={{ paddingBottom: '20px' }}>
+      <div className="flex flex-col gap-4 xl:h-full min-w-0 xl:overflow-y-auto xl:pr-1 order-3 xl:pb-5">
         <ScenarioPanel />
-        <AqiLegendPanel />
       </div>
     </div>
   );

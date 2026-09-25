@@ -1,13 +1,11 @@
 import React from 'react';
-import { Wind, LayoutDashboard, Map, CloudRain, Car, Layers } from 'lucide-react';
+import { Wind, LayoutDashboard, Map, CheckCircle } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', icon: <LayoutDashboard size={20} />, active: true },
     { label: 'Map', icon: <Map size={20} />, active: false },
-    { label: 'Forecast', icon: <CloudRain size={20} />, active: false },
-    { label: 'Drivers', icon: <Car size={20} />, active: false },
-    { label: 'Scenarios', icon: <Layers size={20} />, active: false },
+    { label: 'Validate', icon: <CheckCircle size={20} />, active: false },
   ];
 
   return (
@@ -65,19 +63,23 @@ export const Sidebar: React.FC = () => {
               padding: '10px 12px',
               borderRadius: 'var(--radius-md)',
               background: item.active ? 'rgba(255,255,255,0.1)' : 'transparent',
-              color: item.active ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
+              color: item.active ? '#FFFFFF' : 'rgba(255,255,255,0.8)',
               textDecoration: 'none',
               fontWeight: 500,
               fontSize: 'var(--text-sm)',
-              cursor: item.active ? 'pointer' : 'not-allowed',
+              opacity: item.active ? 1 : 0.5,
+              cursor: item.active ? 'pointer' : 'default',
               transition: 'var(--transition-base)',
             }}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent focus-visible:ring-offset-[#1a1a1a]"
             onClick={(e) => {
               if (!item.active) e.preventDefault();
             }}
           >
-            {item.icon}
-            {item.label}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+              {item.icon}
+              {item.label}
+            </div>
           </a>
         ))}
       </nav>
