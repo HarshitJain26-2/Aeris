@@ -84,7 +84,11 @@ class ScenarioService:
         model = self.get_model()
 
         # Retrieve feature vector (canonical evaluation hour or latest available)
-        feat_dict = features if features is not None else self._forecast_repo.get_latest_feature_vector()
+        feat_dict = (
+            features
+            if features is not None
+            else self._forecast_repo.get_verified_evaluation_feature_vector()
+        )
 
         # Call the existing counterfactual scenario engine (ml/src/scenario.py strictly preserves 0-50%)
         result = run_traffic_reduction_scenario(

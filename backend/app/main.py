@@ -2,6 +2,15 @@
 AERIS Backend Application Entrypoint
 FastAPI application exposing environmental intelligence, forecast, and zone APIs.
 """
+
+from pathlib import Path
+import sys
+
+# Ensure project root is in sys.path
+root_dir = Path(__file__).resolve().parent.parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

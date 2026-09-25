@@ -68,3 +68,10 @@ class ForecastRepository:
                 pass
 
         return dict(CANONICAL_FEATURE_ROW)
+
+    def get_verified_evaluation_feature_vector(self) -> Dict[str, Any]:
+        """
+        Returns a copy of the canonical verified 25-feature state for Pune
+        (evaluation baseline hour 2023-01-18 08:00 IST).
+        """
+        return dict(CANONICAL_FEATURE_ROW)

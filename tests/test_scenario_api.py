@@ -252,3 +252,31 @@ def test_scenario_alias_and_v1_route_compatibility(client):
     resp_v1 = client.post("/api/v1/scenario/simulate", json={"traffic_reduction_pct": 30})
     assert resp_v1.status_code == 200
     assert resp_v1.json()["traffic_reduction_pct"] == 30.0
+
+
+# -----------------------------------------------------------------------------
+# 11. Canonical Evaluation Context Verification
+# -----------------------------------------------------------------------------
+def test_default_scenario_context_uses_verified_evaluation_hour():
+    """
+    Verifies that default ScenarioService context uses the verified canonical
+    evaluation hour (2023-01-18 08:00:00+05:30) rather than the 22:00 validation row.
+    """
+    from backend.app.repositories.forecast_repository import ForecastRepository
+    from backend.app.services.scenario_service import ScenarioService
+
+    repo = ForecastRepository()
+    canonical_feat = repo.get_verified_evaluation_feature_vector()
+    assert canonical_feat["timestamp"] == "2023-01-18 08:00:00+05:30"
+
+    # Ensure it differs from the last row (22:00) of validation parquet
+    latest_feat = repo.get_latest_feature_vector()
+    assert latest_feat["timestamp"] != canonical_feat["timestamp"]
+    assert "22:00" in latest_feat["timestamp"]
+
+    # Verify simulate default context produces the verified model-driven results
+    service = ScenarioService(forecast_repo=repo)
+    res = service.simulate(traffic_reduction_pct=50.0)
+    assert res.baseline_pm25 == pytest.approx(67.9864, rel=1e-3)
+    assert res.scenario_pm25 == pytest.approx(68.3063, rel=1e-3)
+    assert res.delta == pytest.approx(0.3199, rel=1e-3)
