@@ -1,11 +1,13 @@
 import React from 'react';
 import { Wind, MapPin, Clock, User } from 'lucide-react';
+import { USE_MOCK } from '../../services/api';
 
 interface TopBarProps {
   lastUpdated?: string;
+  selectedZoneName?: string;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
+export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName }) => {
   const timeStr = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString('en-IN', {
         hour: '2-digit',
@@ -99,21 +101,40 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
             Last updated: {lastUpdated ? timeStr : '10:45 AM'}
           </div>
 
-          {/* Demo Mode Badge */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '4px 10px',
-            background: 'var(--aqi-moderate-bg)',
-            color: 'var(--aqi-moderate)',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.65rem',
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            border: '1px solid rgba(214, 164, 0, 0.3)'
-          }}>
-            DEMO MODE · MOCK DATA
-          </div>
+          {/* Mode Badge (Live API vs Mock) */}
+          {!USE_MOCK ? (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              background: 'rgba(46, 158, 91, 0.15)',
+              color: 'var(--color-observed)',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              border: '1px solid rgba(46, 158, 91, 0.3)'
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-observed)' }} />
+              LIVE BACKEND · REAL ML
+            </div>
+          ) : (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 10px',
+              background: 'var(--aqi-moderate-bg)',
+              color: 'var(--aqi-moderate)',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              border: '1px solid rgba(214, 164, 0, 0.3)'
+            }}>
+              DEMO MODE · MOCK DATA
+            </div>
+          )}
         </div>
 
         {/* Location Pill */}
@@ -129,7 +150,7 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
         }}>
           <MapPin size={14} color="var(--color-accent)" aria-hidden="true" />
           <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-            Pune, Maharashtra
+            {selectedZoneName ? `Pune • ${selectedZoneName}` : 'Pune, Maharashtra'}
           </span>
         </div>
 
