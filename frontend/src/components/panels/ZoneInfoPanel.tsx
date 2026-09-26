@@ -1,11 +1,8 @@
 import React from 'react';
 import { Card } from '../ui/Card';
-import { AqiBadge } from '../ui/AqiBadge';
+import { Camera, MapPin, Radio, Car, Factory, Home } from 'lucide-react';
 import { EmptyState } from '../ui/EmptyState';
-import { ObservedTag } from '../status/ObservedTag';
-import { ModelledTag } from '../status/ModelledTag';
 import type { SelectedMapEntity } from '../../types/zone';
-import { Camera, MapPin, Radio, Car, Factory, Home, AlertCircle } from 'lucide-react';
 
 interface ZoneInfoPanelProps {
   selectedEntity: SelectedMapEntity | null;
@@ -14,7 +11,6 @@ interface ZoneInfoPanelProps {
 
 export const ZoneInfoPanel: React.FC<ZoneInfoPanelProps> = ({
   selectedEntity,
-  mode = 'observed',
 }) => {
   if (!selectedEntity) {
     return (
@@ -28,7 +24,7 @@ export const ZoneInfoPanel: React.FC<ZoneInfoPanelProps> = ({
   }
 
   if (selectedEntity.type === 'zone') {
-    const { zone, airshedPm25, airshedAqi, airshedBand, timestamp, dataSource } = selectedEntity;
+    const { zone, airshedPm25, airshedAqi, airshedBand, dataSource } = selectedEntity;
 
     const getBandStyles = (band: string | null | undefined) => {
       switch (band) {
@@ -177,7 +173,7 @@ export const ZoneInfoPanel: React.FC<ZoneInfoPanelProps> = ({
   }
 
   // Hotspot feature selected
-  const { name, locality, pm25, aqi, aqiBand, dominantDriver, latitude, longitude, timestamp, dataSource } = selectedEntity;
+  const { name, locality, pm25, aqi, aqiBand, dominantDriver, latitude, longitude, dataSource } = selectedEntity;
 
   const getDriverIcon = (driver: string) => {
     switch (driver) {

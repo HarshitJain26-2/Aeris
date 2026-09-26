@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card } from '../ui/Card';
-import { ModelledTag } from '../status/ModelledTag';
 import { useForecast } from '../../hooks/useForecast';
 import { useAirQuality } from '../../hooks/useAirQuality';
 import { ForecastChart } from '../charts/ForecastChart';

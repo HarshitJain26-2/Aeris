@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Card } from '../ui/Card';
-import { ModelledTag } from '../status/ModelledTag';
 import { RangeSlider } from '../ui/RangeSlider';
 import { Button } from '../ui/Button';
 import { Spinner } from '../ui/Spinner';
@@ -10,7 +9,6 @@ import { ScenarioCompare } from '../charts/ScenarioCompare';
 import { useScenario } from '../../hooks/useScenario';
 import { useAirQuality } from '../../hooks/useAirQuality';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
-import { AlertCircle } from 'lucide-react';
 
 const AnimatedNumber = ({ value }: { value: number }) => {
   const animatedValue = useAnimatedNumber(value);
@@ -28,11 +26,6 @@ export const ScenarioPanel: React.FC = () => {
 
   const isZero = result ? result.deltaAbsolute === 0 : false;
   const isReduction = result ? result.modelled.pm25 <= result.baseline.pm25 : true;
-  const deltaColorClass = isZero
-    ? 'text-text-secondary'
-    : isReduction
-    ? 'text-observed'
-    : 'text-amber-500';
   const deltaSign = isZero ? '' : isReduction ? '-' : '+';
 
   return (
