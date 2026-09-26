@@ -14,7 +14,7 @@ export const ObservedTag: React.FC<ObservedTagProps> = ({ label = 'Observed' }) 
       alignItems: 'center',
       gap: '5px',
       padding: '3px 8px 3px 6px',
-      borderRadius: 'var(--radius-sm)',
+      borderRadius: 'var(--radius-md)',
       background: '#2E9E5B',
       border: 'none',
       color: '#FFFFFF',

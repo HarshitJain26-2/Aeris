@@ -32,7 +32,7 @@ const CustomTooltip: React.FC<DriverTooltipProps> = ({ active, payload }) => {
         <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
           {data.category}
         </p>
-        <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
+        <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-metric)', fontWeight: 600, margin: '2px 0 6px' }}>
           ~{data.estimatedPct}% <span style={{ fontSize: '0.8em', color: 'var(--color-modelled)', fontWeight: 600 }}>MODEL ATTRIBUTION</span>
         </p>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
@@ -55,9 +55,9 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) =>
   if (!drivers || drivers.length === 0) return null;
 
   const CATEGORY_COLORS: Record<string, string> = {
-    'Traffic': 'var(--chart-cat-1)',
-    'Industrial': 'var(--chart-cat-2)',
-    'Residential/Biomass': 'var(--chart-cat-3)',
+    'Traffic': '#F97316',
+    'Industrial': '#7C3AED',
+    'Residential/Biomass': '#14B8A6',
   };
 
   return (
@@ -73,6 +73,7 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) =>
             outerRadius={45}
             stroke="var(--color-bg-surface)"
             strokeWidth={2}
+            strokeDasharray="3 3"
             isAnimationActive={true}
           >
             {drivers.map((entry, index) => (

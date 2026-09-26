@@ -63,6 +63,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       closeButton: false,
       closeOnClick: false,
       offset: 12,
+      className: 'glass-panel',
     });
     hoverPopupRef.current = popup;
 
@@ -111,6 +112,12 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
     },
     [mode, airQuality, forecast]
   );
+  
+  // Refs to avoid stale closures in MapLibre event listeners
+  const latestDataRef = useRef({ mode, airQuality, forecast, buildZoneEntity });
+  useEffect(() => {
+    latestDataRef.current = { mode, airQuality, forecast, buildZoneEntity };
+  }, [mode, airQuality, forecast, buildZoneEntity]);
 
   // Setup Documented ML Zones Layers & Centroid Markers
   useEffect(() => {
@@ -134,7 +141,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
           'fill-color': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            '#0d9488',
+            '#14B8A6',
             ['boolean', ['feature-state', 'hover'], false],
             '#14b8a6',
             '#0f766e',
@@ -142,7 +149,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
           'fill-opacity': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            0.4,
+            0.2,
             ['boolean', ['feature-state', 'hover'], false],
             0.28,
             0.14,
@@ -159,7 +166,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
           'line-color': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            '#2dd4bf',
+            '#14B8A6',
             ['boolean', ['feature-state', 'hover'], false],
             '#14b8a6',
             '#0d9488',
@@ -205,17 +212,17 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
         };
 
         const html = `
-          <div style="padding: 8px 12px; font-family: var(--font-sans); font-size: 12px; color: var(--color-text-primary); line-height: 1.4;">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+          <div style="padding: 12px 16px; font-family: var(--font-sans); font-size: 12px; color: var(--color-text-primary); line-height: 1.5;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
               <span style="font-weight: 700; font-size: 13px;">${props.name}</span>
-              <span style="font-size: 10px; padding: 1px 5px; border-radius: 3px; background: rgba(13,148,136,0.2); color: #0d9488; font-weight: 600;">ML Zone</span>
+              <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(37,99,235,0.12); color: var(--color-accent); font-weight: 600;">ML Zone</span>
             </div>
-            <div style="color: var(--color-text-secondary); margin-bottom: 4px; font-size: 11px;">${props.description}</div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid var(--color-border); padding-top: 4px; margin-top: 4px;">
+            <div style="color: var(--color-text-secondary); margin-bottom: 6px; font-size: 11px;">${props.description}</div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid var(--color-border); padding-top: 6px; margin-top: 6px;">
               <span style="color: var(--color-text-muted);">CCTV Streams:</span>
-              <span style="font-weight: 600; color: var(--color-teal);">${props.cameraCount} Cameras</span>
+              <span style="font-weight: 600; color: var(--color-accent);">${props.cameraCount} Cameras</span>
             </div>
-            <div style="color: var(--color-text-muted); font-size: 10px; margin-top: 3px;">Click to inspect verified telemetry</div>
+            <div style="color: var(--color-text-muted); font-size: 10px; margin-top: 4px;">Click to inspect verified telemetry</div>
           </div>
         `;
 
@@ -239,10 +246,17 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       // Zone click interaction
       currentMap.on('click', 'zones-fill', (e) => {
         if (!e.features || !e.features[0]) return;
-        const feature = e.features[0];
-        const rawProps = feature.properties as { zone_id: string };
+        
+        let rawProps = e.features[0].properties as any;
+        if (typeof rawProps === 'string') {
+          try {
+            rawProps = JSON.parse(rawProps);
+          } catch (err) {}
+        }
+        
         const zoneObj = ZONE_LOOKUP[rawProps.zone_id];
         if (zoneObj) {
+          const { buildZoneEntity } = latestDataRef.current;
           onSelectEntity(buildZoneEntity(zoneObj));
         }
       });
@@ -263,23 +277,23 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       el.style.gap = '5px';
       el.style.padding = '4px 8px';
       el.style.borderRadius = '16px';
-      el.style.background = isSelected ? '#0d9488' : 'rgba(26, 25, 23, 0.9)';
+      el.style.background = isSelected ? '#14B8A6' : '#17202A';
       el.style.color = '#FFFFFF';
-      el.style.border = isSelected ? '2px solid #2dd4bf' : '1px solid rgba(13, 148, 136, 0.6)';
+      el.style.border = isSelected ? '1px solid #FFFFFF' : 'none';
       el.style.boxShadow = isSelected
-        ? '0 0 12px rgba(45, 212, 191, 0.8)'
+        ? '0 0 12px rgba(20, 184, 166, 0.8)'
         : '0 2px 6px rgba(0,0,0,0.4)';
       el.style.cursor = 'pointer';
-      el.style.fontSize = '11px';
+      el.style.fontSize = '12px';
       el.style.fontWeight = '600';
-      el.style.fontFamily = 'var(--font-sans)';
+      el.style.fontFamily = 'Inter, sans-serif';
       el.style.userSelect = 'none';
-      el.style.transition = 'all 150ms ease';
+      el.style.transition = 'all 300ms ease';
       el.style.whiteSpace = 'nowrap';
       el.innerHTML = `
-        <span style="width: 7px; height: 7px; border-radius: 50%; background: ${isSelected ? '#FFFFFF' : '#2dd4bf'};"></span>
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: ${isSelected ? '#FFFFFF' : '#14B8A6'};"></span>
         <span>${zone.name}</span>
-        <span style="font-size: 9px; opacity: 0.85; font-family: var(--font-mono); background: rgba(255,255,255,0.15); padding: 1px 4px; border-radius: 4px;">${zone.cameraCount}c</span>
+        <span style="font-size: 10px; opacity: 0.85; font-family: var(--font-mono); background: rgba(255,255,255,0.15); padding: 1px 4px; border-radius: 4px;">${zone.cameraCount}c</span>
       `;
 
       el.addEventListener('mouseenter', () => {
@@ -347,11 +361,9 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
               ['linear'],
               ['heatmap-density'],
               0, 'rgba(0,0,0,0)',
-              0.2, 'rgba(74, 222, 128, 0.6)',  // Good (<= 50)
-              0.4, 'rgba(250, 204, 21, 0.7)',  // Moderate (<= 100)
-              0.6, 'rgba(251, 146, 60, 0.8)',  // Poor (<= 200)
-              0.8, 'rgba(239, 68, 68, 0.9)',   // Very Poor (<= 300)
-              1, 'rgba(153, 27, 27, 1)'        // Severe (> 300)
+              0.3, 'rgba(74, 222, 128, 0.6)',  // Green
+              0.6, 'rgba(250, 204, 21, 0.8)',  // Yellow
+              1, '#F97316'                     // Orange center
             ],
             'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 11, 22, 15, 52],
             'heatmap-opacity': mode === 'observed' ? 0.8 : 0.55,
@@ -408,11 +420,11 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
         }
 
         const html = `
-          <div style="padding: 8px 12px; font-family: var(--font-sans); font-size: 12px; color: var(--color-text-primary); line-height: 1.4;">
-            <div style="font-weight: 700; margin-bottom: 4px; font-size: 13px;">${props.name}</div>
-            <div style="color: var(--color-text-secondary); margin-bottom: 2px;">AQI: <span style="color: var(--color-text-primary); font-weight: 600;">${props.aqi}</span> (${props.aqiBand})</div>
-            <div style="color: var(--color-text-secondary); margin-bottom: 4px;">PM2.5: <span style="color: var(--color-text-primary); font-weight: 600;">${props.pm25}</span> <span style="color: var(--color-text-muted);">µg/m³</span></div>
-            <div style="display: flex; justify-content: space-between; font-size: 10px; border-top: 1px solid var(--color-border); padding-top: 4px; margin-top: 4px;">
+          <div style="padding: 12px 16px; font-family: var(--font-sans); font-size: 12px; color: var(--color-text-primary); line-height: 1.5;">
+            <div style="font-weight: 700; margin-bottom: 6px; font-size: 13px;">${props.name}</div>
+            <div style="color: var(--color-text-secondary); margin-bottom: 4px;">AQI: <span style="color: var(--color-text-primary); font-weight: 600;">${props.aqi}</span> (${props.aqiBand})</div>
+            <div style="color: var(--color-text-secondary); margin-bottom: 6px;">PM2.5: <span style="color: var(--color-text-primary); font-weight: 600;">${props.pm25}</span> <span style="color: var(--color-text-muted);">µg/m³</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; border-top: 1px solid var(--color-border); padding-top: 6px; margin-top: 6px;">
               <span style="color: var(--color-text-muted); text-transform: uppercase;">Driver: ${props.dominantDriver}</span>
               <span style="color: var(--color-modelled); font-weight: 600;">${props.dataSource}</span>
             </div>
@@ -560,7 +572,12 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
         position: 'absolute',
         top: 0,
         left: 0,
-        background: 'var(--color-bg-base)',
+        background: '#FFFFFF',
+        borderRadius: '14px',
+        border: '1px solid #D9E2EC',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        zIndex: 1,
       }}
     >
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />

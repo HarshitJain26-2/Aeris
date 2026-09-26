@@ -14,9 +14,9 @@
   --color-border-subtle: #DCE3ED;
 
   /* ── Accent Color (Interactive elements only) ── */
-  --color-accent: #14508C;
-  --color-accent-hover: #0F3D6B;
-  --color-teal: #14508C; /* Kept for backwards compatibility if needed */
+  --color-accent: #2563EB;
+  --color-accent-hover: #1D4ED8;
+  --color-teal: #2563EB; /* Kept for backwards compatibility if needed */
   
   /* ── Focus ring ── */
   --color-focus-ring: var(--color-accent);
@@ -85,14 +85,14 @@
 
   /* ── Border radius ── */
   --radius-sm:   4px;
-  --radius-md:   8px;
+  --radius-md:   12px;
   --radius-lg:   12px;
   --radius-xl:   16px;
   --radius-full: 9999px;
 
   /* ── Shadows ── */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-border);
-  --shadow-pop:  0 8px 24px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--color-border);
+  --shadow-card: 0 4px 12px rgba(11, 30, 61, 0.08), 0 0 0 1px var(--color-border);
+  --shadow-pop:  0 8px 24px rgba(11, 30, 61, 0.15), 0 0 0 1px var(--color-border);
 
   /* ── Transitions ── */
   --transition-base: 150ms ease-out;

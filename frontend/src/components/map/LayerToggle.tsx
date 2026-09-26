@@ -13,15 +13,13 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ mode, onChange }) => {
         position: 'absolute',
         top: 'var(--space-4)',
         left: 'var(--space-4)',
-        background: 'var(--color-bg-overlay)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-1)',
+        padding: '4px',
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
-        boxShadow: 'var(--shadow-card)',
+        background: '#FFFFFF',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(11, 30, 61, 0.08)',
         zIndex: 10,
       }}
     >
@@ -33,14 +31,15 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ mode, onChange }) => {
         onClick={() => onChange('observed')}
         style={{
           padding: '6px 12px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: '6px',
           border: 'none',
-          background: mode === 'observed' ? 'var(--color-bg-elevated)' : 'transparent',
-          color: mode === 'observed' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-          fontSize: 'var(--text-xs)',
-          fontWeight: mode === 'observed' ? 600 : 500,
+          background: mode === 'observed' ? '#1769D2' : '#FFFFFF',
+          color: mode === 'observed' ? '#FFFFFF' : '#475569',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 500,
           cursor: 'pointer',
-          transition: 'all 200ms ease',
+          transition: 'all 300ms ease',
         }}
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-accent"
       >
@@ -51,14 +50,15 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ mode, onChange }) => {
         onClick={() => onChange('modelled')}
         style={{
           padding: '6px 12px',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: '6px',
           border: 'none',
-          background: mode === 'modelled' ? 'var(--color-modelled-bg)' : 'transparent',
-          color: mode === 'modelled' ? 'var(--color-modelled)' : 'var(--color-text-secondary)',
-          fontSize: 'var(--text-xs)',
-          fontWeight: mode === 'modelled' ? 600 : 500,
+          background: mode === 'modelled' ? '#1769D2' : '#FFFFFF',
+          color: mode === 'modelled' ? '#FFFFFF' : '#475569',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 500,
           cursor: 'pointer',
-          transition: 'all 200ms ease',
+          transition: 'all 300ms ease',
         }}
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-accent"
       >

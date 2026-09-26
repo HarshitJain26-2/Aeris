@@ -17,20 +17,18 @@ export const Card: React.FC<CardProps> = ({
     accent === 'observed'
       ? '2px solid var(--color-observed)'
       : accent === 'modelled'
-      ? '2px solid var(--color-modelled)'
+      ? '2px dashed var(--color-modelled)'
       : undefined;
 
   return (
     <div
-      className={className}
+      className={`aeris-card ${className}`}
       style={{
         background: 'var(--color-bg-surface)',
         border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
         borderLeft,
-        boxShadow: 'var(--shadow-card)',
         overflow: 'hidden',
-        transition: 'box-shadow var(--transition-base), border-color var(--transition-base)',
         ...style,
       }}
     >

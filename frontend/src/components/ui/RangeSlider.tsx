@@ -26,19 +26,20 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <label
           style={{
-            fontSize: 'var(--text-sm)',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
             fontWeight: 500,
-            color: disabled ? 'var(--color-text-muted)' : 'var(--color-text-primary)',
+            color: disabled ? 'var(--color-text-muted)' : '#0B1F3A',
           }}
         >
           {label}
         </label>
         <span
           style={{
-            fontSize: 'var(--text-sm)',
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 600,
-            color: disabled ? 'var(--color-text-muted)' : 'var(--color-accent)',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '16px',
+            fontWeight: 700,
+            color: disabled ? 'var(--color-text-muted)' : '#1769D2',
           }}
         >
           {value}%
@@ -54,8 +55,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             right: 0,
             height: '6px',
             borderRadius: '3px',
-            background: 'var(--color-bg-elevated)',
-            border: '1px solid var(--color-border)',
+            background: '#DBEAFE',
           }}
         />
         <div
@@ -65,7 +65,7 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             width: `${percent}%`,
             height: '6px',
             borderRadius: '3px',
-            background: disabled ? 'var(--color-text-muted)' : 'var(--color-accent)',
+            background: disabled ? 'var(--color-text-muted)' : '#1769D2',
           }}
         />
 
@@ -97,9 +97,9 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             width: '16px',
             height: '16px',
             borderRadius: '50%',
-            background: disabled ? 'var(--color-text-muted)' : '#fff',
-            boxShadow: 'var(--shadow-card)',
-            border: disabled ? 'none' : '2px solid var(--color-accent)',
+            background: '#FFFFFF',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: disabled ? 'none' : '2px solid #1769D2',
             pointerEvents: 'none',
           }}
           className="peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-bg-surface"

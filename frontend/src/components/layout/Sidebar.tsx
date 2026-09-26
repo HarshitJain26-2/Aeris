@@ -69,7 +69,7 @@ export const Sidebar: React.FC = () => {
               fontSize: 'var(--text-sm)',
               opacity: item.active ? 1 : 0.5,
               cursor: item.active ? 'pointer' : 'default',
-              transition: 'var(--transition-base)',
+              transition: 'all 300ms ease',
             }}
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent focus-visible:ring-offset-[#1a1a1a]"
             onClick={(e) => {
