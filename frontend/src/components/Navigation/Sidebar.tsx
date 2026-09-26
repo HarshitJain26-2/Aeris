@@ -12,10 +12,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     <aside className="aeris-sidebar">
       <div className="sidebar-brand">
         <div className="brand-logo">
-          <Globe size={20} className="brand-icon" />
+          <div className="brand-icon-wrapper">
+            <Globe size={14} color="#FFFFFF" />
+          </div>
           <span className="brand-name">AERIS</span>
         </div>
-        <div className="brand-subtitle">Urban Digital Twin</div>
       </div>
 
       <div className="sidebar-section-title">Navigation</div>
@@ -26,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           onClick={() => onTabChange('map')}
         >
           <Map size={16} />
-          <span>GIS Map View</span>
+          <span>Dashboard</span>
         </button>
 
         <button
@@ -35,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           onClick={() => onTabChange('zones')}
         >
           <Layers size={16} />
-          <span>Urban Zones (6)</span>
+          <span>Map</span>
         </button>
 
         <button
@@ -44,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           onClick={() => onTabChange('forecast')}
         >
           <TrendingUp size={16} />
-          <span>Forecasting</span>
+          <span>Validate</span>
           <span className="nav-tag">Next</span>
         </button>
 
@@ -60,13 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-status-box">
-          <div className="status-header">
-            <span className="system-indicator"></span>
-            <span className="system-title">Region: Pune, MH</span>
-          </div>
-          <div className="system-desc">M3 Foundation Active</div>
-        </div>
+        Cleaner Cities, Healthier Tomorrow
       </div>
     </aside>
   );

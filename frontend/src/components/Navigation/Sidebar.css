@@ -1,7 +1,7 @@
 .aeris-sidebar {
-  width: 240px;
-  background-color: #ffffff;
-  border-right: 1px solid #e2e8f0;
+  width: 200px;
+  background-color: #0B2A4A;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -10,7 +10,7 @@
 
 .sidebar-brand {
   padding: 20px 16px 16px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .brand-logo {
@@ -19,22 +19,25 @@
   gap: 8px;
 }
 
-.brand-icon {
-  color: #0284c7;
+.brand-icon-wrapper {
+  background-color: #1769D2;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-name {
-  font-size: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #0f172a;
+  letter-spacing: 0;
+  color: #ffffff;
 }
 
-.brand-subtitle {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
-}
+
 
 .sidebar-section-title {
   padding: 16px 16px 8px 16px;
@@ -42,7 +45,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar-nav {
@@ -58,68 +61,46 @@
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: none;
   background: none;
-  color: #475569;
+  color: #CBD5E1;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 .nav-item:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
 }
 
 .nav-item.active {
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: #1769D2;
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: none;
 }
 
 .nav-tag {
   margin-left: auto;
   font-size: 10px;
-  color: #64748b;
-  background: #f1f5f9;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: normal;
 }
 
 .sidebar-footer {
-  padding: 14px 16px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.sidebar-status-box {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 10px;
-}
-
-.status-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  padding: 16px;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.system-indicator {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #10b981;
-}
-
-.system-desc {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
+  color: #CBD5E1;
+  font-weight: 400;
+  line-height: 1.4;
+  margin-top: auto;
 }

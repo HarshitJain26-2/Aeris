@@ -93,7 +93,7 @@ export const ZonePopup: React.FC<ZonePopupProps> = ({ feature, onClose }) => {
               gap: '5px', 
               padding: '3px 8px', 
               borderRadius: 'var(--radius-full)', 
-              border: '1px dashed var(--color-modelled)', 
+              border: '1px solid var(--color-modelled)', 
               color: 'var(--color-modelled)', 
               fontSize: 'var(--text-xs)', 
               fontWeight: 600, 
