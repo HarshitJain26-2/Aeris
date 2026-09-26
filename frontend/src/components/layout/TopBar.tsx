@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wind, MapPin, Clock, User } from 'lucide-react';
+import { USE_MOCK } from '../../services/api';
 
 interface TopBarProps {
   lastUpdated?: string;
@@ -99,20 +100,20 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
             Last updated: {lastUpdated ? timeStr : '10:45 AM'}
           </div>
 
-          {/* Demo Mode Badge */}
+          {/* Mode Badge */}
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             padding: '4px 10px',
-            background: 'var(--aqi-moderate-bg)',
-            color: 'var(--aqi-moderate)',
+            background: USE_MOCK ? 'var(--aqi-moderate-bg)' : 'var(--color-observed-bg)',
+            color: USE_MOCK ? 'var(--aqi-moderate)' : 'var(--color-observed)',
             borderRadius: 'var(--radius-full)',
             fontSize: '0.65rem',
             fontWeight: 700,
             letterSpacing: '0.05em',
-            border: '1px solid rgba(214, 164, 0, 0.3)'
+            border: USE_MOCK ? '1px solid rgba(214, 164, 0, 0.3)' : '1px solid rgba(22, 163, 74, 0.3)'
           }}>
-            DEMO MODE · MOCK DATA
+            {USE_MOCK ? 'DEMO MODE · MOCK DATA' : 'LIVE BACKEND · REAL ML'}
           </div>
         </div>
 

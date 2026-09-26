@@ -51,8 +51,8 @@ export const DriverPanel: React.FC = () => {
           </div>
 
           <div className="mt-2 pt-3 border-t border-border">
-            <p className="text-xs text-text-muted italic leading-relaxed" title="Model-estimated feature attribution; not direct causal source measurement.">
-              Model-estimated feature attribution; not direct causal source measurement.
+            <p className="text-xs text-text-muted italic leading-relaxed" title="Model feature attribution from SHAP values; not direct causal source apportionment.">
+              Model feature attribution from SHAP values; not direct causal source apportionment.
             </p>
           </div>
         </>

@@ -11,12 +11,13 @@
 import type { AirQualityReading } from '../types/airQuality';
 import type { ForecastResponse } from '../types/forecast';
 import type { HotspotGeoJSON } from '../types/hotspot';
+import type { ScenarioResult } from '../types/scenario';
 import type { DriverAttributionResponse } from '../types/source';
 import type { UrbanZone } from '../types/zone';
 import { DOCUMENTED_ZONES_LIST } from '../data/puneZones';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
@@ -71,4 +72,24 @@ export async function getZones(): Promise<UrbanZone[]> {
     return Promise.resolve(DOCUMENTED_ZONES_LIST);
   }
   return fetchJson<UrbanZone[]>('/api/v1/zones');
+}
+
+// ── Scenario Simulation ──────────────────────────────────────
+
+export async function simulateScenario(
+  input: number | { trafficReductionPct: number },
+  _baseline?: AirQualityReading
+): Promise<ScenarioResult> {
+  if (USE_MOCK) {
+    const mod = await import('../mocks/airQualityObserved.json');
+    return mod.default as unknown as ScenarioResult;
+  }
+  const payload = typeof input === 'number' ? { trafficReductionPct: input } : input;
+  const res = await fetch(`${API_BASE}/api/scenario/simulate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: /api/scenario/simulate`);
+  return res.json() as Promise<ScenarioResult>;
 }

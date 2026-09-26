@@ -1,21 +1,23 @@
 /**
  * useScenario hook
  *
- * Round 1: calls the deterministic frontend ScenarioCalculator synchronously.
- * Round 2: swap computeScenario() with api.computeScenario() — zero component changes.
+ * Supports both:
+ * - Mock mode (USE_MOCK === true): synchronous deterministic frontend ScenarioCalculator.
+ * - Real API mode (USE_MOCK === false): async backend simulation via POST /api/scenario/simulate.
  *
- * No artificial loading delay. Loading state reflects real async work only.
+ * State is shared globally across components through listener subscriptions.
  */
 import { useState, useCallback, useEffect } from 'react';
 import type { ScenarioInput, ScenarioResult } from '../types/scenario';
 import type { AirQualityReading } from '../types/airQuality';
 import { computeScenario } from '../lib/scenarioCalculator';
+import { USE_MOCK, simulateScenario } from '../services/api';
 
 interface ScenarioState {
   result: ScenarioResult | null;
   loading: boolean;
   error: string | null;
-  run: (input: ScenarioInput, baseline: AirQualityReading) => void;
+  run: (input: ScenarioInput, baseline: AirQualityReading) => Promise<void>;
   reset: () => void;
 }
 
@@ -37,13 +39,16 @@ export function useScenario(): ScenarioState {
     return () => { listeners.delete(handler); };
   }, []);
 
-  const run = useCallback((input: ScenarioInput, baseline: AirQualityReading) => {
+  const run = useCallback(async (input: ScenarioInput, baseline: AirQualityReading) => {
     globalLoading = true;
     globalError = null;
     notify();
     try {
-      // Synchronous deterministic calculation — no fake delay
-      globalResult = computeScenario(input, baseline);
+      if (USE_MOCK) {
+        globalResult = computeScenario(input, baseline);
+      } else {
+        globalResult = await simulateScenario(input.trafficReductionPct, baseline);
+      }
     } catch (err) {
       globalError = err instanceof Error ? err.message : 'Calculation failed';
     } finally {

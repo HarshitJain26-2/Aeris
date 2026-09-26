@@ -1,8 +1,18 @@
-export type DriverCategory = 'Traffic' | 'Industrial' | 'Residential/Biomass';
+export type DriverCategory =
+  | 'Recent PM2.5 history'
+  | 'Weather'
+  | 'Traffic'
+  | 'Time / calendar';
 
+/**
+ * Normalized mean absolute SHAP feature-attribution shares.
+ * These are model feature attributions, NOT physical emission-source
+ * apportionment percentages, and must never be described as causal proof
+ * that a source category causes a specific fraction of PM2.5.
+ */
 export interface DriverAttribution {
   category: DriverCategory;
-  /** Estimated percentage contribution — approximate model estimate */
+  /** Estimated percentage contribution (normalized mean absolute SHAP feature attribution) */
   estimatedPct: number;
   /** Confidence interval lower bound (pct) */
   ciLower: number;
@@ -17,10 +27,11 @@ export interface DriverAttributionResponse {
   period: string;
   drivers: DriverAttribution[];
   /**
-   * IMPORTANT: This must always be 'DEMO_FIXTURE' or 'model_estimate'.
-   * Never claim causal proof from source apportionment.
+   * Attribution method:
+   * - 'model_feature_attribution': normalized mean absolute SHAP feature-attribution shares.
+   * - 'DEMO_FIXTURE': development fixture.
    */
-  method: 'DEMO_FIXTURE' | 'source_apportionment' | 'receptor_model';
+  method: 'model_feature_attribution' | 'DEMO_FIXTURE';
   disclaimer: string;
   dataSource: 'model_estimate' | 'DEMO_FIXTURE';
 }

@@ -11,9 +11,16 @@ import { useScenario } from '../../hooks/useScenario';
 import { useAirQuality } from '../../hooks/useAirQuality';
 import { useAnimatedNumber } from '../../hooks/useAnimatedNumber';
 
-const AnimatedNumber = ({ value }: { value: number }) => {
+const AnimatedNumber = ({ value, showPositiveSign = false }: { value: number; showPositiveSign?: boolean }) => {
   const animatedValue = useAnimatedNumber(value);
-  return <>{animatedValue.toFixed(1)}</>;
+  const formatted = animatedValue.toFixed(1);
+  if (formatted === '0.0' || formatted === '-0.0') {
+    return <>0.0</>;
+  }
+  if (showPositiveSign && animatedValue > 0) {
+    return <>+{formatted}</>;
+  }
+  return <>{formatted}</>;
 };
 
 export const ScenarioPanel: React.FC = () => {
@@ -21,6 +28,11 @@ export const ScenarioPanel: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState(false);
   const { run, result, loading, error, reset } = useScenario();
   const { data: baseline } = useAirQuality();
+
+  const signedDelta = result ? result.modelled.pm25 - result.baseline.pm25 : 0;
+  const signedDeltaPct = result && result.baseline.pm25 !== 0
+    ? ((result.modelled.pm25 - result.baseline.pm25) / result.baseline.pm25) * 100
+    : 0;
 
   const handleRun = () => {
     if (baseline) {
@@ -108,14 +120,14 @@ export const ScenarioPanel: React.FC = () => {
               <div>
                 <p className="text-xs text-text-secondary mb-1">Absolute Change</p>
                 <span className="text-sm font-mono text-observed">
-                  -<AnimatedNumber value={result.deltaAbsolute} /> µg/m³
+                  <AnimatedNumber value={signedDelta} showPositiveSign /> µg/m³
                 </span>
               </div>
               <div className="text-right">
                 <p className="text-xs text-text-secondary mb-1">Projected Impact</p>
                 <div className="flex items-baseline gap-1 justify-end">
                   <span className="text-2xl font-bold font-mono text-observed">
-                    -<AnimatedNumber value={result.deltaPct} />%
+                    <AnimatedNumber value={signedDeltaPct} showPositiveSign />%
                   </span>
                 </div>
               </div>

@@ -19,9 +19,68 @@ interface ScenarioTooltipProps {
   payload?: ScenarioTooltipPayloadItem[];
 }
 
+const renderCustomLabel = (props: any) => {
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const width = Number(props.width ?? 0);
+  const height = Number(props.height ?? 0);
+  const { value, index } = props;
+  if (value === undefined || value === null) return null;
+  const numValue = typeof value === 'number' ? value : Number(value);
+  if (isNaN(numValue)) return null;
+
+  // Baseline and Scenario labels
+  if (index === 0 || index === 1) {
+    return (
+      <text
+        x={x + width / 2}
+        y={y - 6}
+        fill="var(--color-text-primary)"
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={600}
+        fontFamily="var(--font-mono)"
+      >
+        {numValue.toFixed(1)}
+      </text>
+    );
+  }
+
+  // Change bar label
+  if (index === 2) {
+    // If the bar magnitude is too small to render cleanly, conditionally hide it
+    if (Math.abs(numValue) < 0.05) {
+      return null;
+    }
+
+    const formatted = numValue > 0 ? `+${numValue.toFixed(1)}` : numValue.toFixed(1);
+    const absHeight = Math.abs(height);
+    const yPos = numValue >= 0 ? y - 6 : y + absHeight + 14;
+
+    return (
+      <text
+        x={x + width / 2}
+        y={yPos}
+        fill="var(--color-text-primary)"
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={600}
+        fontFamily="var(--font-mono)"
+      >
+        {formatted}
+      </text>
+    );
+  }
+
+  return null;
+};
+
 const CustomTooltip: React.FC<ScenarioTooltipProps> = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const { name, pm25 } = payload[0].payload;
+    const formattedPm25 = typeof pm25 === 'number'
+      ? (name === 'Change' && pm25 > 0 ? `+${pm25}` : `${pm25}`)
+      : pm25;
     return (
       <div style={{
         background: 'var(--color-bg-elevated)',
@@ -32,7 +91,7 @@ const CustomTooltip: React.FC<ScenarioTooltipProps> = ({ active, payload }) => {
       }}>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>{name}</p>
         <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-          {pm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
+          {formattedPm25} <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>µg/m³</span>
         </p>
       </div>
     );
@@ -54,7 +113,7 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
     },
     {
       name: 'Change',
-      pm25: -result.deltaAbsolute,
+      pm25: result.modelled.pm25 - result.baseline.pm25,
       type: 'change'
     }
   ];
@@ -92,7 +151,7 @@ export const ScenarioCompare: React.FC<ScenarioCompareProps> = ({ result }) => {
             animationDuration={700}
             animationEasing="ease-out"
           >
-            <LabelList dataKey="pm25" position="top" fill="var(--color-text-primary)" fontSize={11} fontWeight={600} fontFamily="var(--font-mono)" />
+            <LabelList dataKey="pm25" content={renderCustomLabel} />
             {data.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
