@@ -1,21 +1,13 @@
-/**
- * useScenario hook
- *
- * Round 1: calls the deterministic frontend ScenarioCalculator synchronously.
- * Round 2: swap computeScenario() with api.computeScenario() — zero component changes.
- *
- * No artificial loading delay. Loading state reflects real async work only.
- */
 import { useState, useCallback, useEffect } from 'react';
 import type { ScenarioInput, ScenarioResult } from '../types/scenario';
 import type { AirQualityReading } from '../types/airQuality';
-import { computeScenario } from '../lib/scenarioCalculator';
+import { simulateScenario } from '../services/api';
 
 interface ScenarioState {
   result: ScenarioResult | null;
   loading: boolean;
   error: string | null;
-  run: (input: ScenarioInput, baseline: AirQualityReading) => void;
+  run: (input: ScenarioInput, baseline?: AirQualityReading | null) => Promise<void>;
   reset: () => void;
 }
 
@@ -37,13 +29,12 @@ export function useScenario(): ScenarioState {
     return () => { listeners.delete(handler); };
   }, []);
 
-  const run = useCallback((input: ScenarioInput, baseline: AirQualityReading) => {
+  const run = useCallback(async (input: ScenarioInput, baseline?: AirQualityReading | null) => {
     globalLoading = true;
     globalError = null;
     notify();
     try {
-      // Synchronous deterministic calculation — no fake delay
-      globalResult = computeScenario(input, baseline);
+      globalResult = await simulateScenario(input.trafficReductionPct, baseline || undefined);
     } catch (err) {
       globalError = err instanceof Error ? err.message : 'Calculation failed';
     } finally {

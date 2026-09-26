@@ -14,9 +14,20 @@ import { useForecast } from '../hooks/useForecast';
 import { useZones } from '../hooks/useZones';
 import type { SelectedMapEntity } from '../types/zone';
 
-export const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  selectedEntity?: SelectedMapEntity | null;
+  onSelectEntity?: (entity: SelectedMapEntity | null) => void;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({
+  selectedEntity: propSelectedEntity,
+  onSelectEntity: propOnSelectEntity,
+}) => {
   const [mapMode, setMapMode] = useState<'observed' | 'modelled'>('observed');
-  const [selectedEntity, setSelectedEntity] = useState<SelectedMapEntity | null>(null);
+  const [localSelectedEntity, setLocalSelectedEntity] = useState<SelectedMapEntity | null>(null);
+
+  const selectedEntity = propSelectedEntity !== undefined ? propSelectedEntity : localSelectedEntity;
+  const setSelectedEntity = propOnSelectEntity || setLocalSelectedEntity;
 
   const { data: hotspots } = useHotspots();
   const { data: airQuality } = useAirQuality();
@@ -33,9 +44,9 @@ export const DashboardPage: React.FC = () => {
         height: '100%',
       }}
     >
-      {/* LEFT COLUMN: Data & Analysis */}
-      <div className="flex flex-col gap-4 xl:overflow-y-auto xl:pr-1 min-w-0 order-2 xl:order-1 xl:pb-5">
-        <ObservedPanel />
+      {/* LEFT COLUMN: Data & Analysis (Telemetry, Forecast, Drivers) */}
+      <div className="flex flex-col gap-4 overflow-y-auto overflow-x-hidden h-full pr-1 min-w-0 pb-4">
+        <ObservedPanel selectedEntity={selectedEntity} />
         <ForecastPanel />
         <DriverPanel />
       </div>
@@ -68,7 +79,7 @@ export const DashboardPage: React.FC = () => {
                   airshedAqi: isModelled ? (forecastTarget?.aqi ?? 215) : (airQuality?.aqi ?? 212),
                   airshedBand: isModelled ? (forecastTarget?.aqiBand ?? 'Poor') : (airQuality?.aqiBand ?? 'Poor'),
                   timestamp: isModelled ? (forecast?.generatedAt ?? null) : (airQuality?.timestamp ?? null),
-                  dataSource: isModelled ? 'model_estimate' : 'DEMO_FIXTURE',
+                  dataSource: isModelled ? 'model_estimate' : (airQuality?.dataSource ?? 'DEMO_FIXTURE'),
                 });
               }
             }}
@@ -81,7 +92,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* RIGHT COLUMN: Scenarios & Legend */}
-      <div className="flex flex-col gap-4 xl:h-full min-w-0 xl:overflow-y-auto xl:pr-1 order-3 xl:pb-5">
+      <div className="flex flex-col gap-4 h-full min-w-0 overflow-y-auto overflow-x-hidden pr-1 pb-4">
         <ScenarioPanel />
       </div>
     </div>

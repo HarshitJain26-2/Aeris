@@ -366,8 +366,6 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
         type: 'circle',
         source: sourceId,
         paint: {
-          'circle-color-transition': { duration: 800, delay: 0 } as any,
-          'circle-radius-transition': { duration: 800, delay: 0 } as any,
           'circle-radius': [
             'step',
             ['get', 'aqi'],
@@ -388,7 +386,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
           ],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#1a1917',
-        } as any,
+        },
       });
 
       // Hotspot hover interaction
@@ -552,7 +550,7 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       timeout = setTimeout(() => setMapLoaded(true), 2000);
     }
     return () => clearTimeout(timeout);
-  }, [map.current, mapLoaded]);
+  }, [mapLoaded]);
 
   return (
     <div

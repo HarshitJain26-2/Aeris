@@ -10,11 +10,13 @@ export const DriverPanel: React.FC = () => {
   const { data, loading, error, refetch } = useSourceAttribution();
 
   return (
-    <Card className="p-4 flex flex-col gap-4 shrink-0">
-      <div className="flex justify-between items-start">
+    <Card accent="modelled" className="p-4 flex flex-col gap-3 shrink-0">
+      <div className="flex justify-between items-start gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">Model-Estimated Drivers</h2>
-          <ModelledTag label="Model Estimate" />
+          <h2 className="text-sm font-semibold text-text-primary mb-1 uppercase tracking-wide">
+            Source Drivers
+          </h2>
+          <ModelledTag label="MODEL ATTRIBUTION" />
         </div>
       </div>
 
@@ -24,9 +26,9 @@ export const DriverPanel: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-6 mt-2 min-w-0">
+          <div className="flex items-center gap-6 mt-1 min-w-0">
             <DriverDonut drivers={data?.drivers || []} loading={loading} />
-            <div className="flex-1 flex flex-col gap-3 min-w-0">
+            <div className="flex-1 flex flex-col gap-2.5 min-w-0">
               {loading || !data ? (
                  <>
                    <div className="skeleton w-full h-4 rounded-md opacity-40"></div>
@@ -42,17 +44,18 @@ export const DriverPanel: React.FC = () => {
                       className="w-2 h-2 rounded-full shrink-0" 
                       style={{ background: `var(--chart-cat-${(i % 3) + 1})` }} 
                     />
-                    <span className="text-sm font-medium text-text-primary">{d.category}</span>
+                    <span className="text-sm font-medium text-text-primary truncate">{d.category}</span>
                   </div>
-                  <span className="text-sm font-mono text-text-secondary">~{d.estimatedPct}%</span>
+                  <span className="text-xs font-mono font-semibold text-text-secondary shrink-0">~{d.estimatedPct}%</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-2 pt-3 border-t border-border">
-            <p className="text-xs text-text-muted italic leading-relaxed" title="Model-estimated feature attribution; not direct causal source measurement.">
-              Model-estimated feature attribution; not direct causal source measurement.
+          <div className="mt-1 pt-2.5 border-t border-border">
+            <p className="text-[11px] text-text-muted leading-relaxed" title="MODEL-ESTIMATED DRIVER / MODEL ATTRIBUTION">
+              <span className="font-semibold text-text-secondary">MODEL-ESTIMATED DRIVER / MODEL ATTRIBUTION: </span>
+              Feature importance estimates; not direct causal source apportionment.
             </p>
           </div>
         </>

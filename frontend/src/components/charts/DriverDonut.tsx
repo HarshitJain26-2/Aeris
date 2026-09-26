@@ -33,7 +33,7 @@ const CustomTooltip: React.FC<DriverTooltipProps> = ({ active, payload }) => {
           {data.category}
         </p>
         <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
-          ~{data.estimatedPct}% <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>(DEMO)</span>
+          ~{data.estimatedPct}% <span style={{ fontSize: '0.8em', color: 'var(--color-modelled)', fontWeight: 600 }}>MODEL ATTRIBUTION</span>
         </p>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
           {data.description}
