@@ -2,7 +2,6 @@ import React from 'react';
 import { Card } from '../ui/Card';
 import { ObservedTag } from '../status/ObservedTag';
 import { ModelledTag } from '../status/ModelledTag';
-import { AqiBadge } from '../ui/AqiBadge';
 import { Skeleton } from '../ui/Skeleton';
 import { ErrorState } from '../ui/ErrorState';
 import { EmptyState } from '../ui/EmptyState';

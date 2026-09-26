@@ -247,14 +247,16 @@ export const HotspotMap: React.FC<HotspotMapProps> = ({
       currentMap.on('click', 'zones-fill', (e) => {
         if (!e.features || !e.features[0]) return;
         
-        let rawProps = e.features[0].properties as any;
+        let rawProps = e.features[0].properties as Record<string, unknown>;
         if (typeof rawProps === 'string') {
           try {
             rawProps = JSON.parse(rawProps);
-          } catch (err) {}
+          } catch {
+            // Ignore JSON parse errors — use raw string as-is
+          }
         }
         
-        const zoneObj = ZONE_LOOKUP[rawProps.zone_id];
+        const zoneObj = ZONE_LOOKUP[rawProps.zone_id as string];
         if (zoneObj) {
           const { buildZoneEntity } = latestDataRef.current;
           onSelectEntity(buildZoneEntity(zoneObj));
