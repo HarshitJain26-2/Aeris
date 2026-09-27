@@ -5,9 +5,10 @@ import { Sidebar } from './Sidebar';
 interface AppShellProps {
   children: React.ReactNode;
   lastUpdated?: string;
+  selectedZoneName?: string;
 }
 
-export const AppShell: React.FC<AppShellProps> = ({ children, lastUpdated }) => {
+export const AppShell: React.FC<AppShellProps> = ({ children, lastUpdated, selectedZoneName }) => {
   return (
     <div
       style={{
@@ -22,7 +23,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, lastUpdated }) => 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <TopBar lastUpdated={lastUpdated} />
+          <TopBar lastUpdated={lastUpdated} selectedZoneName={selectedZoneName} />
           <main
             style={{
               flex: 1,

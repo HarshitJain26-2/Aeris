@@ -50,9 +50,10 @@ export const ZoneSelector: React.FC<ZoneSelectorProps> = ({
           padding: '6px 10px',
           borderRadius: 'var(--radius-md)',
           border: 'none',
-          background: activeZoneId === null ? 'var(--color-bg-elevated)' : 'transparent',
-          color: activeZoneId === null ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-          fontSize: 'var(--text-xs)',
+          background: activeZoneId === null ? '#E2E8F0' : 'transparent',
+          color: activeZoneId === null ? '#0B1F3A' : '#475569',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '13px',
           fontWeight: activeZoneId === null ? 600 : 500,
           cursor: 'pointer',
           transition: 'all 150ms ease',
@@ -80,9 +81,10 @@ export const ZoneSelector: React.FC<ZoneSelectorProps> = ({
               padding: '6px 10px',
               borderRadius: 'var(--radius-md)',
               border: isSelected ? '1px solid var(--color-teal)' : '1px solid transparent',
-              background: isSelected ? 'rgba(13, 148, 136, 0.15)' : 'transparent',
-              color: isSelected ? 'var(--color-teal-light)' : 'var(--color-text-secondary)',
-              fontSize: 'var(--text-xs)',
+              background: isSelected ? 'rgba(20, 184, 166, 0.15)' : 'transparent',
+              color: isSelected ? '#0D9488' : '#475569',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '13px',
               fontWeight: isSelected ? 600 : 500,
               cursor: 'pointer',
               transition: 'all 150ms ease',
@@ -90,16 +92,17 @@ export const ZoneSelector: React.FC<ZoneSelectorProps> = ({
             }}
             title={`${zone.name} - ${zone.cameraCount} CCTV cameras`}
           >
-            <MapPin size={12} color={isSelected ? 'var(--color-teal)' : 'var(--color-text-muted)'} aria-hidden="true" />
+            <MapPin size={12} color={isSelected ? '#14B8A6' : '#94A3B8'} aria-hidden="true" />
             <span>{zone.name}</span>
             <span
               style={{
-                fontSize: '10px',
-                padding: '1px 5px',
+                fontSize: '11px',
+                padding: '2px 6px',
                 borderRadius: 'var(--radius-sm)',
-                background: isSelected ? 'rgba(13, 148, 136, 0.25)' : 'var(--color-bg-elevated)',
-                color: isSelected ? 'var(--color-teal-light)' : 'var(--color-text-muted)',
-                fontFamily: 'var(--font-mono)',
+                background: isSelected ? '#14B8A6' : '#F1F5F9',
+                color: isSelected ? '#FFFFFF' : '#64748B',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
               }}
             >
               {zone.cameraCount} cam

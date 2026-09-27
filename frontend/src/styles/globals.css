@@ -39,6 +39,16 @@ body {
   background: var(--color-text-muted);
 }
 
+/* ── Card Hover Effect ── */
+.aeris-card {
+  box-shadow: var(--shadow-card);
+  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+}
+.aeris-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-pop);
+}
+
 /* ── Focus ring — accessible teal ── */
 :focus-visible {
   outline: 2px solid var(--color-focus-ring);
@@ -85,14 +95,43 @@ body {
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-pop) !important;
   padding: 0 !important;
+  animation: popupFadeIn 300ms ease forwards;
+}
+.maplibregl-popup.glass-panel {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.maplibregl-popup.glass-panel .maplibregl-popup-content {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(11, 30, 61, 0.15) !important;
+  border-radius: 12px !important;
+}
+.maplibregl-popup.glass-panel .maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.65) !important;
 }
 .maplibregl-popup-tip {
   border-top-color: var(--color-bg-elevated) !important;
   border-bottom-color: var(--color-bg-elevated) !important;
+  animation: popupFadeIn 300ms ease forwards;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .maplibregl-ctrl-group {
-  background: var(--color-bg-elevated) !important;
-  border: 1px solid var(--color-border) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(11, 30, 61, 0.15) !important;
 }
 .maplibregl-ctrl-group button {
   background-color: transparent !important;
@@ -108,4 +147,22 @@ body {
 }
 .maplibregl-ctrl-attrib a {
   color: var(--color-text-muted) !important;
+}
+
+/* ── Glassmorphism Utilities ── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(11, 30, 61, 0.15);
+  border-radius: 12px;
+}
+
+.glass-panel-dark {
+  background: rgba(11, 30, 61, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #F7F9FC;
 }
