@@ -4,10 +4,9 @@ import { USE_MOCK } from '../../services/api';
 
 interface TopBarProps {
   lastUpdated?: string;
-  selectedZoneName?: string;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName }) => {
+export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
   const timeStr = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString('en-IN', {
         hour: '2-digit',
@@ -20,8 +19,8 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
     <header
       style={{
         height: '64px',
-        background: '#FFFFFF',
-        borderBottom: '1px solid #D9E2EC',
+        background: 'var(--color-bg-surface)',
+        borderBottom: '1px solid var(--color-border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -50,10 +49,10 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
             <h1
               style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '18px',
+                fontSize: 'var(--text-base)',
                 fontWeight: 700,
-                color: '#0B1F3A',
+                color: 'var(--color-text-primary)',
+                letterSpacing: '-0.01em',
                 lineHeight: 1,
               }}
             >
@@ -61,11 +60,11 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
             </h1>
             <span
               style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#64748B',
+                fontSize: '0.7rem',
+                color: 'var(--color-text-secondary)',
+                letterSpacing: '0.04em',
                 textTransform: 'uppercase',
+                fontWeight: 600,
               }}
             >
               Urban Environmental Intelligence
@@ -73,10 +72,9 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
           </div>
           <p
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 400,
-              color: '#64748B',
+              fontSize: '0.7rem',
+              color: 'var(--color-text-muted)',
+              letterSpacing: '0.02em',
               lineHeight: 1,
             }}
           >
@@ -92,51 +90,31 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Data Available Indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16A34A' }} />
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#15803D' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--aqi-good)', boxShadow: '0 0 0 2px var(--aqi-good-bg)' }} />
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: '0.05em' }}>
               DATA AVAILABLE
             </span>
           </div>
 
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 400, color: '#64748B' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
             Last updated: {lastUpdated ? timeStr : '10:45 AM'}
           </div>
 
-          {/* Mode Badge (Live API vs Mock) */}
-          {!USE_MOCK ? (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              boxShadow: '0 2px 4px rgba(11, 30, 61, 0.05)',
-              background: 'rgba(46, 158, 91, 0.15)',
-              color: 'var(--color-observed)',
-              borderRadius: 'var(--radius-full)',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 600,
-              border: '1px solid rgba(46, 158, 91, 0.3)'
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-observed)' }} />
-              LIVE BACKEND · REAL ML
-            </div>
-          ) : (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '6px 12px',
-              background: '#FEF3C7',
-              color: '#B45309',
-              borderRadius: 'var(--radius-full)',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 600,
-              border: '1px solid #F59E0B'
-            }}>
-              DEMO MODE · MOCK DATA
-            </div>
-          )}
+          {/* Mode Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '4px 10px',
+            background: USE_MOCK ? 'var(--aqi-moderate-bg)' : 'var(--color-observed-bg)',
+            color: USE_MOCK ? 'var(--aqi-moderate)' : 'var(--color-observed)',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            border: USE_MOCK ? '1px solid rgba(214, 164, 0, 0.3)' : '1px solid rgba(22, 163, 74, 0.3)'
+          }}>
+            {USE_MOCK ? 'DEMO MODE · MOCK DATA' : 'LIVE BACKEND · REAL ML'}
+          </div>
         </div>
 
         {/* Location Pill */}
@@ -144,15 +122,15 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName })
           display: 'flex', 
           alignItems: 'center', 
           gap: '6px', 
-          background: '#F8FAFC',
+          background: 'var(--color-bg-elevated)',
           padding: '6px 12px',
           borderRadius: 'var(--radius-full)',
           border: '1px solid var(--color-border)',
-          color: '#0B1F3A' 
+          color: 'var(--color-text-primary)' 
         }}>
           <MapPin size={14} color="var(--color-accent)" aria-hidden="true" />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500 }}>
-            {selectedZoneName ? `Pune • ${selectedZoneName}` : 'Pune, Maharashtra'}
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
+            Pune, Maharashtra
           </span>
         </div>
 

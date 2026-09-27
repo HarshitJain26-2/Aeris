@@ -17,6 +17,12 @@ interface DriverTooltipProps {
   payload?: DriverTooltipPayloadItem[];
 }
 
+const DRIVER_COLORS = [
+  'var(--chart-cat-1)',
+  'var(--chart-cat-2)',
+  'var(--chart-cat-3)',
+];
+
 const CustomTooltip: React.FC<DriverTooltipProps> = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -32,8 +38,8 @@ const CustomTooltip: React.FC<DriverTooltipProps> = ({ active, payload }) => {
         <p style={{ color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
           {data.category}
         </p>
-        <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-metric)', fontWeight: 600, margin: '2px 0 6px' }}>
-          ~{data.estimatedPct}% <span style={{ fontSize: '0.8em', color: 'var(--color-modelled)', fontWeight: 600 }}>MODEL ATTRIBUTION</span>
+        <p style={{ color: payload[0].payload.fill || 'var(--color-text-primary)', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-mono)', fontWeight: 600, margin: '2px 0 6px' }}>
+          ~{data.estimatedPct}% <span style={{ fontSize: '0.85em', color: 'var(--color-text-muted)', fontWeight: 400 }}>Model feature attribution</span>
         </p>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', lineHeight: 1.3 }}>
           {data.description}
@@ -54,12 +60,6 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) =>
   }
   if (!drivers || drivers.length === 0) return null;
 
-  const CATEGORY_COLORS: Record<string, string> = {
-    'Traffic': '#F97316',
-    'Industrial': '#7C3AED',
-    'Residential/Biomass': '#14B8A6',
-  };
-
   return (
     <div style={{ width: '100px', height: '100px', position: 'relative' }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -73,11 +73,10 @@ export const DriverDonut: React.FC<DriverDonutProps> = ({ drivers, loading }) =>
             outerRadius={45}
             stroke="var(--color-bg-surface)"
             strokeWidth={2}
-            strokeDasharray="3 3"
             isAnimationActive={true}
           >
-            {drivers.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category] || 'var(--color-border)'} />
+            {drivers.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={DRIVER_COLORS[index % DRIVER_COLORS.length]} />
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />

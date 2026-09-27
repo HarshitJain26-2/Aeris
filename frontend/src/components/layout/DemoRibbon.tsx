@@ -1,14 +1,18 @@
 import React from 'react';
 import { FlaskConical } from 'lucide-react';
+import { USE_MOCK } from '../../services/api';
 
 /**
  * DemoRibbon — persistent banner indicating mock data is active.
  * MUST be visible at all times during DEMO mode.
  * Helps prevent mock values from being mistaken for real data.
  */
-export const DemoRibbon: React.FC = () => (
-  <div
-    role="banner"
+export const DemoRibbon: React.FC = () => {
+  if (!USE_MOCK) return null;
+
+  return (
+    <div
+      role="banner"
     aria-label="Demo mode active — mock fixture data"
     style={{
       height: '28px',
@@ -29,5 +33,6 @@ export const DemoRibbon: React.FC = () => (
   >
     <FlaskConical size={12} aria-hidden="true" />
     DEMO MODE · MOCK DATA
-  </div>
-);
+    </div>
+  );
+};
