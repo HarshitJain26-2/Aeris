@@ -1,11 +1,15 @@
 import React from 'react';
 import { Wind, LayoutDashboard, Map, CheckCircle } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onOpenValidation?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onOpenValidation }) => {
   const navItems = [
     { label: 'Dashboard', icon: <LayoutDashboard size={20} />, active: true },
     { label: 'Map', icon: <Map size={20} />, active: false },
-    { label: 'Validate', icon: <CheckCircle size={20} />, active: false },
+    { label: 'Validate', icon: <CheckCircle size={20} />, active: false, onClick: onOpenValidation },
   ];
 
   return (
@@ -67,13 +71,18 @@ export const Sidebar: React.FC = () => {
               textDecoration: 'none',
               fontWeight: 500,
               fontSize: 'var(--text-sm)',
-              opacity: item.active ? 1 : 0.5,
-              cursor: item.active ? 'pointer' : 'default',
+              opacity: item.active || item.onClick ? 1 : 0.5,
+              cursor: item.active || item.onClick ? 'pointer' : 'default',
               transition: 'all 300ms ease',
             }}
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent focus-visible:ring-offset-[#1a1a1a]"
             onClick={(e) => {
-              if (!item.active) e.preventDefault();
+              if (item.onClick) {
+                e.preventDefault();
+                item.onClick();
+              } else if (!item.active) {
+                e.preventDefault();
+              }
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>

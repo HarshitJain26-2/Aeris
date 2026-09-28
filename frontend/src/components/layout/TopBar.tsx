@@ -1,12 +1,13 @@
-import React from 'react';
-import { Wind, MapPin, Clock, User } from 'lucide-react';
+import { Wind, MapPin, Clock, User, Award } from 'lucide-react';
 import { USE_MOCK } from '../../services/api';
 
 interface TopBarProps {
   lastUpdated?: string;
+  selectedZoneName?: string;
+  onOpenValidation?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
+export const TopBar: React.FC<TopBarProps> = ({ lastUpdated, selectedZoneName, onOpenValidation }) => {
   const timeStr = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString('en-IN', {
         hour: '2-digit',
@@ -115,6 +116,34 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
           }}>
             {USE_MOCK ? 'DEMO MODE · MOCK DATA' : 'LIVE BACKEND · REAL ML'}
           </div>
+
+          {/* Validation Evidence Action */}
+          {onOpenValidation && (
+            <button
+              type="button"
+              onClick={onOpenValidation}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                background: '#EFF6FF',
+                color: '#1D4ED8',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                border: '1px solid #BFDBFE',
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+              }}
+              className="hover:bg-blue-100 hover:border-blue-300"
+              title="Inspect 1-hour-ahead temporal holdout validation metrics"
+            >
+              <Award size={12} className="text-blue-600" />
+              <span>VALIDATION EVIDENCE</span>
+            </button>
+          )}
         </div>
 
         {/* Location Pill */}
@@ -130,7 +159,7 @@ export const TopBar: React.FC<TopBarProps> = ({ lastUpdated }) => {
         }}>
           <MapPin size={14} color="var(--color-accent)" aria-hidden="true" />
           <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-            Pune, Maharashtra
+            {selectedZoneName ? `Pune • ${selectedZoneName}` : 'Pune, Maharashtra'}
           </span>
         </div>
 

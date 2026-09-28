@@ -280,3 +280,31 @@ def test_default_scenario_context_uses_verified_evaluation_hour():
     assert res.baseline_pm25 == pytest.approx(67.9864, rel=1e-3)
     assert res.scenario_pm25 == pytest.approx(68.3063, rel=1e-3)
     assert res.delta == pytest.approx(0.3199, rel=1e-3)
+
+
+# -----------------------------------------------------------------------------
+# 12. Endpoint Route Consistency: POST /api/v1/scenario & GET /api/v1/model/validation
+# -----------------------------------------------------------------------------
+def test_scenario_v1_root_route_and_validation_endpoint(client):
+    """
+    Verifies that:
+    1. POST /api/v1/scenario (without /simulate) resolves successfully.
+    2. GET /api/v1/model/validation returns verified holdout metrics.
+    """
+    # Test POST /api/v1/scenario
+    resp = client.post("/api/v1/scenario", json={"trafficReductionPct": 25})
+    assert resp.status_code == 200
+    assert resp.json()["traffic_reduction_pct"] == 25.0
+    assert resp.json()["dataSource"] == "model_estimate"
+
+    # Test GET /api/v1/model/validation
+    resp_val = client.get("/api/v1/model/validation")
+    assert resp_val.status_code == 200
+    val_data = resp_val.json()
+    assert val_data["model"] == "XGBoost"
+    assert val_data["target"] == "pm25_target_t_plus_1"
+    assert val_data["target_source_type"] == "modeled"
+    assert val_data["beats_persistence_mae"] is True
+    assert val_data["beats_persistence_rmse"] is True
+    assert val_data["mae"] < val_data["persistence_mae"]
+    assert val_data["rmse"] < val_data["persistence_rmse"]
