@@ -8,15 +8,8 @@ export const App: React.FC = () => {
   const { data } = useAirQuality();
   const [selectedEntity, setSelectedEntity] = useState<SelectedMapEntity | null>(null);
 
-  const selectedName =
-    selectedEntity?.type === 'zone'
-      ? selectedEntity.zone.name
-      : selectedEntity?.type === 'hotspot'
-      ? selectedEntity.name
-      : undefined;
-
   return (
-    <AppShell lastUpdated={data?.timestamp} selectedZoneName={selectedName}>
+    <AppShell lastUpdated={data?.timestamp}>
       <DashboardPage selectedEntity={selectedEntity} onSelectEntity={setSelectedEntity} />
     </AppShell>
   );
