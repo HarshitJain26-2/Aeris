@@ -150,27 +150,62 @@ This moves the user experience from **passive pollution monitoring** to **interv
 
 ## 7. System Architecture
 
-The complete system architecture is split into four views for clarity.
+```mermaid
+flowchart LR
+    subgraph S1["1. DATA SOURCES"]
+        direction TB
+        DS_AQ["Air Quality"]
+        DS_WX["Weather"]
+        DS_TR["Traffic"]
+        DS_SP["Spatial Data"]
+    end
 
-### Part 1 — Data Sources & Processing
+    subgraph S2["2. DATA PROCESSING"]
+        direction TB
+        DP_PY["Python"]
+        DP_PD["Pandas"]
+        DP_NP["NumPy"]
+        DP_FE["Feature Engineering"]
+    end
 
-![Data Sources and Processing](docs/architecture/system-architecture-01.jpeg)
+    subgraph S3["3. AI / ML CORE"]
+        direction TB
+        ML_FC["PM2.5 Forecasting"]
+        ML_SH["SHAP Explainability"]
+        ML_SC["Scenario Modelling"]
+    end
 
-### Part 2 — Forecasting & Intelligence
+    subgraph S4["4. BACKEND SERVICES"]
+        direction TB
+        BE_API["Python + FastAPI"]
+        BE_REST["REST APIs"]
+        BE_VAL["Validation & Schemas"]
+    end
 
-![Forecasting and Intelligence](docs/architecture/system-architecture-02.jpeg)
+    subgraph S5["5. DATA & SPATIAL LAYER"]
+        direction TB
+        DB_PG["PostgreSQL"]
+        DB_GIS["PostGIS"]
+        DB_HOT["Spatial Hotspots"]
+    end
 
-### Part 3 — Backend & Application Layer
+    subgraph S6["6. AERIS DASHBOARD"]
+        direction TB
+        FE_RT["React + TypeScript"]
+        FE_MAP["MapLibre"]
+        FE_CHT["Recharts"]
+        FE_CSS["Tailwind CSS"]
+    end
 
-![Backend and Application Layer](docs/architecture/system-architecture-03.jpeg)
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S4 --> S6
+    S5 --> S6
+```
 
-### Part 4 — End-to-End Application Flow
-
-![End-to-End Application Flow](docs/architecture/system-architecture-04.jpeg)
-
-**Architecture flow:**
-
-> Data Sources → Data Processing → ML Forecasting → Attribution / Scenario / Hotspots → FastAPI → React Dashboard
+Architecture flow: Data Sources → Data Processing → AI/ML Core → Backend Services → Data & Spatial Layer → AERIS Dashboard
 
 ---
 
