@@ -26,6 +26,18 @@ router = APIRouter()
         "the counterfactual response may be non-monotonic."
     ),
 )
+@router.post(
+    "",
+    response_model=ScenarioResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+@router.post(
+    "/",
+    response_model=ScenarioResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
 def simulate_traffic_reduction(
     request: ScenarioRequest,
     service: ScenarioService = Depends(get_scenario_service),

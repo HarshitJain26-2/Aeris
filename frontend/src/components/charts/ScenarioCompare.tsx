@@ -19,7 +19,16 @@ interface ScenarioTooltipProps {
   payload?: ScenarioTooltipPayloadItem[];
 }
 
-const renderCustomLabel = (props: any) => {
+interface CustomLabelProps {
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  height?: number | string;
+  value?: number | string;
+  index?: number;
+}
+
+const renderCustomLabel = (props: CustomLabelProps) => {
   const x = Number(props.x ?? 0);
   const y = Number(props.y ?? 0);
   const width = Number(props.width ?? 0);

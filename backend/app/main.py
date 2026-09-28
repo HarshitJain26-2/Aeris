@@ -18,6 +18,7 @@ from backend.app.api.current import router as current_router
 from backend.app.api.drivers import router as drivers_router
 from backend.app.api.forecast import router as forecast_router
 from backend.app.api.scenario import router as scenario_router
+from backend.app.api.validation import router as validation_router
 from backend.app.api.zones import router as zones_router
 
 app = FastAPI(
@@ -59,6 +60,10 @@ app.include_router(current_router, prefix="/api/v1", tags=["Air Quality"])
 app.include_router(drivers_router, prefix="/api/v1", tags=["Driver Attribution"])
 app.include_router(forecast_router, prefix="/api/v1", tags=["Forecast"])
 app.include_router(zones_router, prefix="/api/v1", tags=["Zones"])
+
+# Include Model Validation Evidence API under /api/v1/model and /api/model
+app.include_router(validation_router, prefix="/api/v1/model", tags=["Model Validation"])
+app.include_router(validation_router, prefix="/api/model", tags=["Model Validation"])
 
 # Include Scenario Simulation API under /api/scenario and /api/v1/scenario
 app.include_router(scenario_router, prefix="/api/scenario", tags=["Scenario Simulation"])
