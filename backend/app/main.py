@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.current import router as current_router
 from backend.app.api.drivers import router as drivers_router
 from backend.app.api.forecast import router as forecast_router
+from backend.app.api.hotspots import router as hotspots_router
 from backend.app.api.scenario import router as scenario_router
 from backend.app.api.validation import router as validation_router
 from backend.app.api.zones import router as zones_router
@@ -59,6 +60,7 @@ def health_check():
 app.include_router(current_router, prefix="/api/v1", tags=["Air Quality"])
 app.include_router(drivers_router, prefix="/api/v1", tags=["Driver Attribution"])
 app.include_router(forecast_router, prefix="/api/v1", tags=["Forecast"])
+app.include_router(hotspots_router, prefix="/api/v1", tags=["Hotspots"])
 app.include_router(zones_router, prefix="/api/v1", tags=["Zones"])
 
 # Include Model Validation Evidence API under /api/v1/model and /api/model

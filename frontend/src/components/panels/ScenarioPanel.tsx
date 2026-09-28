@@ -45,7 +45,10 @@ export const ScenarioPanel: React.FC = () => {
   };
 
   return (
-    <Card className="p-4 flex flex-col gap-5 flex-1 border-l-2 border-modelled relative min-w-0 bg-white">
+    <Card
+      className="p-4 flex flex-col gap-4 min-h-full shrink-0 border-l-2 border-modelled relative min-w-0 bg-white"
+      style={{ overflow: 'visible' }}
+    >
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -198,7 +201,7 @@ export const ScenarioPanel: React.FC = () => {
       )}
 
       {/* Results / Empty / Loading / Error Section */}
-      <div className="flex-1 flex flex-col justify-end pt-2 border-t border-border">
+      <div className={`flex-1 flex flex-col pt-2 border-t border-border ${result ? 'justify-start' : 'justify-end'}`}>
         {error ? (
           <div className="h-[210px] flex items-center justify-center p-4 border border-dashed border-red-200 rounded-xl bg-red-50/30">
             <ErrorState title="Scenario failed to compute" onRetry={handleRun} />

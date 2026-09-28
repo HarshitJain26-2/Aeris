@@ -40,19 +40,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(280px, 320px) minmax(400px, 1fr) minmax(320px, 360px)',
-        gridTemplateRows: '1fr',
+        gridTemplateRows: 'minmax(0, 1fr)',
         height: '100%',
       }}
     >
       {/* LEFT COLUMN: Data & Analysis (Telemetry, Forecast, Drivers) */}
-      <div className="flex flex-col gap-4 overflow-y-auto overflow-x-hidden h-full pr-1 min-w-0 pb-4">
+      <div className="flex flex-col gap-4 overflow-y-auto overflow-x-hidden h-full pr-1 min-w-0 min-h-0 pb-4">
         <ObservedPanel selectedEntity={selectedEntity} />
         <ForecastPanel />
         <DriverPanel />
       </div>
 
       {/* CENTER COLUMN: Map Hero & Zone Panel */}
-      <div className="flex flex-col gap-4 h-full min-w-0">
+      <div className="flex flex-col gap-4 h-full min-w-0 min-h-0">
         <div className="relative flex-1 rounded-xl overflow-hidden border border-border shadow-card bg-bg-surface min-h-0">
           <HotspotMap
             geoJson={hotspots}
@@ -92,7 +92,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* RIGHT COLUMN: Scenarios & Legend */}
-      <div className="flex flex-col gap-4 h-full min-w-0 overflow-y-auto overflow-x-hidden pr-1 pb-4">
+      <div className="flex flex-col gap-4 h-full min-w-0 min-h-0 overflow-y-auto overflow-x-hidden pr-1 pb-4">
         <ScenarioPanel />
       </div>
     </div>

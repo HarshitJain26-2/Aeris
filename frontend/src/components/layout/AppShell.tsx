@@ -41,6 +41,7 @@ export const AppShell: React.FC<AppShellProps> = ({
               flexDirection: 'column',
               position: 'relative',
               overflow: 'hidden',
+              minHeight: 0,
             }}
           >
             {children}

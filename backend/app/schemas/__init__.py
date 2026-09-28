@@ -8,6 +8,13 @@ from backend.app.schemas.drivers import (
     DriverCategory,
 )
 from backend.app.schemas.forecast import ForecastPoint, ForecastResponse
+from backend.app.schemas.hotspots import (
+    HotspotFeature,
+    HotspotGeoJSON,
+    HotspotMetadata,
+    HotspotPointGeometry,
+    HotspotProperties,
+)
 from backend.app.schemas.scenario import (
     AirQualitySnapshot,
     ScenarioInputSnapshot,
@@ -25,6 +32,11 @@ __all__ = [
     "DriverCategory",
     "ForecastPoint",
     "ForecastResponse",
+    "HotspotFeature",
+    "HotspotGeoJSON",
+    "HotspotMetadata",
+    "HotspotPointGeometry",
+    "HotspotProperties",
     "ScenarioInputSnapshot",
     "ScenarioRequest",
     "ScenarioResponse",
