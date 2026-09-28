@@ -151,58 +151,78 @@ This moves the user experience from **passive pollution monitoring** to **interv
 ## 7. System Architecture
 
 ```mermaid
-flowchart LR
-    subgraph S1["1. DATA SOURCES"]
-        direction TB
-        DS_AQ["Air Quality"]
-        DS_WX["Weather"]
-        DS_TR["Traffic"]
-        DS_SP["Spatial Data"]
+flowchart TB
+    %% ROW 1
+    subgraph R1[" "]
+        direction LR
+        subgraph S1["1. DATA SOURCES"]
+            direction TB
+            DS_AQ["Air Quality"]
+            DS_WX["Weather"]
+            DS_TR["Traffic"]
+            DS_SP["Spatial Data"]
+        end
+
+        subgraph S2["2. DATA PROCESSING"]
+            direction TB
+            DP_PY["Python"]
+            DP_PD["Pandas"]
+            DP_NP["NumPy"]
+            DP_FE["Feature Engineering"]
+        end
+
+        S1 --> S2
     end
 
-    subgraph S2["2. DATA PROCESSING"]
-        direction TB
-        DP_PY["Python"]
-        DP_PD["Pandas"]
-        DP_NP["NumPy"]
-        DP_FE["Feature Engineering"]
+    %% ROW 2
+    subgraph R2[" "]
+        direction LR
+        subgraph S3["3. AI / ML CORE"]
+            direction TB
+            ML_FC["PM2.5 Forecasting"]
+            ML_SH["SHAP Explainability"]
+            ML_SC["Scenario Modelling"]
+        end
+
+        subgraph S4["4. BACKEND SERVICES"]
+            direction TB
+            BE_API["Python + FastAPI"]
+            BE_REST["REST APIs"]
+            BE_VAL["Validation & Schemas"]
+        end
+
+        S3 --> S4
     end
 
-    subgraph S3["3. AI / ML CORE"]
-        direction TB
-        ML_FC["PM2.5 Forecasting"]
-        ML_SH["SHAP Explainability"]
-        ML_SC["Scenario Modelling"]
+    %% ROW 3
+    subgraph R3[" "]
+        direction LR
+        subgraph S5["5. DATA & SPATIAL LAYER"]
+            direction TB
+            DB_PG["PostgreSQL"]
+            DB_GIS["PostGIS"]
+            DB_HOT["Spatial Hotspots"]
+        end
+
+        subgraph S6["6. AERIS DASHBOARD"]
+            direction TB
+            FE_RT["React + TypeScript"]
+            FE_MAP["MapLibre"]
+            FE_CHT["Recharts"]
+            FE_CSS["Tailwind CSS"]
+        end
+
+        S5 --> S6
     end
 
-    subgraph S4["4. BACKEND SERVICES"]
-        direction TB
-        BE_API["Python + FastAPI"]
-        BE_REST["REST APIs"]
-        BE_VAL["Validation & Schemas"]
-    end
-
-    subgraph S5["5. DATA & SPATIAL LAYER"]
-        direction TB
-        DB_PG["PostgreSQL"]
-        DB_GIS["PostGIS"]
-        DB_HOT["Spatial Hotspots"]
-    end
-
-    subgraph S6["6. AERIS DASHBOARD"]
-        direction TB
-        FE_RT["React + TypeScript"]
-        FE_MAP["MapLibre"]
-        FE_CHT["Recharts"]
-        FE_CSS["Tailwind CSS"]
-    end
-
-    S1 --> S2
+    %% INTER-ROW CONNECTIONS
     S2 --> S3
-    S3 --> S4
     S4 --> S5
-    S4 --> S6
-    S5 --> S6
+    S4 -.-> S6
+
+    style R1 fill:transparent,stroke:none
+    style R2 fill:transparent,stroke:none
+    style R3 fill:transparent,stroke:none
 ```
 
 Architecture flow: Data Sources → Data Processing → AI/ML Core → Backend Services → Data & Spatial Layer → AERIS Dashboard
