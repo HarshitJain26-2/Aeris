@@ -354,24 +354,6 @@ The Round-1 prototype demonstrates a single traffic-reduction intervention scena
 Select Zone → Set Traffic Reduction → Run Scenario → Generate Modelled Result → Compare Baseline vs Modelled
 ```
 
-**Conceptual UI representation:**
-
-```
-┌─────────────────────────────────────────────┐
-│                                             │
-│   BASELINE              MODELLED            │
-│   118 µg/m³             96 µg/m³            │
-│                                             │
-│                 ↓                            │
-│              −18.6%                          │
-│                                             │
-└─────────────────────────────────────────────┘
-```
-
-> **Note:** The values shown above are an illustrative UI representation. Actual numbers are generated at runtime based on zone selection and reduction parameters.
-
-The scenario does not claim guaranteed pollution reduction — it presents the **modelled estimate** based on the trained XGBoost model with modified traffic inputs.
-
 ---
 
 ## 12. Observed vs Modelled
